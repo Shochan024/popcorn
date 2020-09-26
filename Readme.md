@@ -9,9 +9,9 @@ git clone git@bitbucket.org:jockroiddev/fantas_pt.git /your_folder
 ```
 Pythonファイルから呼び出し、初期化する
 ```python
-import fantas_pt as fp
-fp.set( data_path="/path/to/datapath/" , setting_path="/path/to/settingpath" )
-fp.preprocess()
+import popcorn as pcn
+pcn.set( data_path="/path/to/datapath/" , setting_path="/path/to/settingpath" )
+pcn.preprocess()
 ```
 初期化により、設定ファイルとデータ格納用フォルダが生成されるので、必要情報を記述する
 
