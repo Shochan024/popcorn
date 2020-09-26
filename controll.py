@@ -8,7 +8,6 @@ import shutil
 import warnings
 import pandas as pd
 from lib.tools.logger import *
-from sklearn.tree import DecisionTreeClassifier, export_graphviz
 
 warnings.simplefilter("ignore")
 __all__ = ["controller"]
@@ -49,7 +48,9 @@ class controller:
 
     def predict( self ):
         exec_infos = lib.json2dict( self.setting_path + "predict.json" )
-        print( exec_infos )
+        exec_array = self.__get_exec( exec_infos=exec_infos )
+        for exec in exec_array:
+            self.__predict_dump( exec=exec , mode=self.mode )
 
     def learn( self ):
         pass
@@ -131,28 +132,20 @@ class controller:
         return exec_array
 
 
-    def __listdir( self , path ):
-        return [ filename for filename in os.listdir( path ) if not filename.startswith('.') ]
-
-
-    def __command_change( self , exec_infos , file_array , file_name ):
+    """
+    Exe Local Methods
+    """
+    def __predict_dump( self , exec , mode=0 ):
         #######################################
-        #     深い階層ならさらにファイルを展開     #
+        #           推定結果を出力する           #
         #######################################
-        dict = {}
-        if os.path.isdir( file_name ):
-            for file in self.__listdir( file_name ):
-                file_path = file_name + "/" + file
-                if file in file_array:
-                    file = os.path.basename( file )
-                    dict[file_path] = exec_infos[file]
-        else:
-            file = os.path.basename( file_name )
-            if file in file_array:
-                dict[file_name] = exec_infos[file]
-
-        return dict
-
+        for path , dict in exec.items():
+            df = pd.read_csv( path )
+            for predict_format , vals in dict.items():
+                predict_format = predict_format.split("_")[0]
+                exe = eval( "lib.{}".format( predict_format ) )( df , vals , path )
+                model = exe.predict()
+                
 
     def __aggregate_dump( self , exec , mode=0 ):
         #######################################
@@ -214,6 +207,30 @@ class controller:
                     self.__mode_change( mode=mode , obj=df.to_csv ,\
                      save_path=save_path )
 
+    """
+    Another Local Methods
+    """
+    def __listdir( self , path ):
+        return [ filename for filename in os.listdir( path ) if not filename.startswith('.') ]
+
+
+    def __command_change( self , exec_infos , file_array , file_name ):
+        #######################################
+        #     深い階層ならさらにファイルを展開     #
+        #######################################
+        dict = {}
+        if os.path.isdir( file_name ):
+            for file in self.__listdir( file_name ):
+                file_path = file_name + "/" + file
+                if file in file_array:
+                    file = os.path.basename( file )
+                    dict[file_path] = exec_infos[file]
+        else:
+            file = os.path.basename( file_name )
+            if file in file_array:
+                dict[file_name] = exec_infos[file]
+
+        return dict
 
     def __mode_change( self , mode , obj , save_path ):
         if mode == 0:
