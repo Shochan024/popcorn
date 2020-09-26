@@ -32,6 +32,12 @@ class decisiontree(Prediction):
         self.y_cols = json.loads( cols["y"] )
         self.query = cols["query"]
         self.save = bool( cols["save"] )
+        self.max_depth = cols["max_depth"]
+
+        if self.max_depth == "None":
+            self.max_depth = None
+        else:
+            self.max_depth = int( self.max_depth )
 
         datetime_columns_arr = datetime_colmuns( df=self.df )
         for col in datetime_columns_arr:
@@ -41,7 +47,7 @@ class decisiontree(Prediction):
         df = self.df.query( self.query )
         X = df[self.x_cols]
         Y = df[self.y_cols]
-        model = DecisionTreeClassifier()
+        model = DecisionTreeClassifier(max_depth=3)
         model.fit( X , Y )
 
         if self.save is True:
