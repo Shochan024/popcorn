@@ -2,8 +2,7 @@
 import os
 from controll import *
 
-ctl = controller( data_path = "./"\
-, setting_path="./" , mode=2 )
+ctl = controller( work_dir = "./" , mode=2 )
 
 ctl.csv()
 ctl.aggregate()

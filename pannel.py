@@ -3,9 +3,9 @@ from .controll import controller as ctl
 
 __all__ = ["set","preprocess"]
 
-def set( data_path , setting_path , mode=2 ):
+def set( work_dir , mode=2 ):
     global ini
-    ini = ctl( data_path=data_path , setting_path=setting_path , mode=mode )
+    ini = ctl( work_dir=work_dir , mode=mode )
     ini.set()
     return False
 

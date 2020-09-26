@@ -22,15 +22,17 @@ class controller:
         - mode : 実行モード <integer>
     --------------------------------
     """
-    def __init__( self , data_path , setting_path , mode=0 ):
-        self.data_path = data_path + "datas/"
-        self.setting_path = setting_path + "settings/"
+    def __init__( self , work_dir , mode=0 ):
+        self.data_path = work_dir + "datas/"
+        self.setting_path = work_dir + "settings/"
+        self.models_path = work_dir + "models/"
         self.mode = mode
 
     def set( self ):
         #必要なフォルダを作成する
         if os.path.exists( self.data_path ) is not True:
             os.makedirs( self.data_path )
+            os.makedirs( self.models_path )
             os.makedirs( self.data_path + "originals" )
             os.makedirs( self.data_path + "shaped" )
             os.makedirs( self.data_path + "statistics" )
@@ -41,6 +43,7 @@ class controller:
             message( "set template files to {}".format( self.setting_path ) , mode=self.mode )
             message( "please set your data to {}".format( self.data_path ) )
             message( "please set information to {}".format( self.setting_path ) )
+
 
         self.all_files = self.__get_all_files()
 
