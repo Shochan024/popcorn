@@ -8,12 +8,13 @@ import pandas as pd
 import seaborn as sns
 import japanize_matplotlib
 import matplotlib.pyplot as plt
-from abc import ABCMeta , abstractmethod
 from PIL import Image
-from sklearn.tree import DecisionTreeClassifier
 from sklearn.tree import plot_tree
 from .tools.logger import *
 from .tools.file_modules import *
+from abc import ABCMeta , abstractmethod
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.model_selection import train_test_split
 
 
 __all__ = ["decisiontree"]
@@ -58,20 +59,39 @@ class decisiontree(Prediction):
         df = self.df.query( self.query )
         X = df[self.x_cols]
         Y = df[self.y_cols]
+
+        X_train , X_test , Y_train , Y_test = train_test_split( X , Y )
+
         model = DecisionTreeClassifier(max_depth=self.max_depth)
-        model.fit( X , Y )
+        model.fit( X_train , Y_train )
 
         if self.save is True:
             # Plot Decision Tree
-            self.__tree_plot( model=model , X=X , Y=Y )
+            self.__tree_plot( model=model , X=X_train , Y=Y_train )
 
             # Plot feature importance
             self.__importance_plot( model=model )
 
         return model
 
-    def accuracy( self ):
-        pass
+    def accuracy( self , model ):
+        df = self.df.query( self.query )
+        X = df[self.x_cols]
+        Y = df[self.y_cols]
+
+        X_train , X_test , Y_train , Y_test = train_test_split( X , Y )
+        Y_test = np.array( Y_test ).T[0]
+        predicted = model.predict( X_test )
+        predicted_train = model.predict( X_train )
+
+        N = len( predicted ) + len( predicted_train )
+
+        train_acc = round( sum( predicted_train ==\
+         np.array(Y_train).T[0] ) / len( predicted_train ) , 3 )
+
+        test_acc = round( sum( predicted == Y_test ) / len( Y_test ) , 3 )
+
+        return { "N" : N , "train" : train_acc , "test" : test_acc }
 
     def __tree_plot( self , model , X , Y ):
         import matplotlib as mpl
@@ -84,10 +104,10 @@ class decisiontree(Prediction):
         filename = filename + "/decisiontree_{}_{}.png".\
         format( self.y_cols[0] , "_".join( self.x_cols ) )
         if os.path.exists( os.path.dirname( filename ) ) is not True:
-            system( "mkdir {}".format( os.path.dirname( filename ) ) )
+            message( "mkdir {}".format( os.path.dirname( filename ) ) )
             os.makedirs( os.path.dirname( filename ) )
 
-        system( "saved Decision Tree image as {}".format( filename ) )
+        message( "saved Decision Tree image as {}".format( filename ) )
         plt.savefig( filename )
 
     def __importance_plot( self , model ):
@@ -102,5 +122,5 @@ class decisiontree(Prediction):
         filename = filename + "/decisiontree_{}_{}_importance.png".\
         format( self.y_cols[0] , "_".join( self.x_cols ) )
         plt.barh( self.x_cols , model.feature_importances_ )
-        system( "saved Decision Tree feature importance image as {}".format( filename ) )
+        message( "saved Decision Tree feature importance image as {}".format( filename ) )
         plt.savefig( filename )

@@ -34,11 +34,11 @@ class controller:
             os.makedirs( self.data_path + "originals" )
             os.makedirs( self.data_path + "shaped" )
             os.makedirs( self.data_path + "statistics" )
-            system( "mkdir {}".format( self.data_path ) , mode=self.mode )
+            message( "mkdir {}".format( self.data_path ) , mode=self.mode )
 
         if os.path.exists( self.setting_path ) is not True:
             shutil.copytree( "{}/templates".format(os.path.dirname( __file__) ) , self.setting_path )
-            system( "set template files to {}".format( self.setting_path ) , mode=self.mode )
+            message( "set template files to {}".format( self.setting_path ) , mode=self.mode )
             message( "please set your data to {}".format( self.data_path ) )
             message( "please set information to {}".format( self.setting_path ) )
 
@@ -145,7 +145,9 @@ class controller:
                 predict_format = predict_format.split("_")[0]
                 exe = eval( "lib.{}".format( predict_format ) )( df , vals , path )
                 model = exe.predict()
-                exe.accuracy()
+                acc = exe.accuracy( model=model )
+                system( "{} N :: {} train accuracy :: {} test accuracy :: {}"\
+                .format( predict_format , acc["N"] , acc["train"] , acc["test"] ) )
 
 
     def __aggregate_dump( self , exec , mode=0 ):
@@ -165,7 +167,7 @@ class controller:
 
                 if os.path.exists( os.path.dirname( save_path ) ) is not True:
                     os.makedirs( os.path.dirname( save_path ) )
-                    system( "mkdir {}".format( save_path ) , mode=self.mode )
+                    message( "mkdir {}".format( save_path ) , mode=self.mode )
 
                 self.__mode_change( mode=mode , obj=aggregate_obj.to_csv ,\
                  save_path=save_path )
@@ -185,7 +187,7 @@ class controller:
                 save_path = os.path.dirname( path.replace("datas","graphs") )
                 if os.path.exists( save_path ) is not True:
                     os.makedirs( save_path  )
-                    system( "mkdir {}".format( save_path ) , mode=self.mode )
+                    message( "mkdir {}".format( save_path ) , mode=self.mode )
 
                 save_path = "{}/{}_{}_{}.png".format( save_path ,\
                  os.path.basename( path ).split(".")[0] ,\
@@ -241,7 +243,7 @@ class controller:
             if os.path.exists( dirname ) is not True:
                 os.makedirs( dirname )
             obj( save_path )
-            system( "save figure in {}".format( save_path ) , mode=mode )
+            message( "save figure in {}".format( save_path ) , mode=mode )
 
 
     def __get_all_files( self ):
