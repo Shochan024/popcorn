@@ -3,7 +3,7 @@ import os
 import numpy as np
 import pprint as pp
 import pandas as pd
-from .tools.logger import *
+from .logger import *
 
 __all__ = ["OutLook"]
 
