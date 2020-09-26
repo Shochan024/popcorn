@@ -8,3 +8,4 @@ ctl = controller( data_path = "./"\
 ctl.csv()
 ctl.aggregate()
 ctl.describe()
+ctl.predict()

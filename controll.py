@@ -7,7 +7,9 @@ import json
 import shutil
 import warnings
 import pandas as pd
-from lib.logger import *
+from lib.tools.logger import *
+from sklearn.tree import DecisionTreeClassifier, export_graphviz
+
 warnings.simplefilter("ignore")
 __all__ = ["controller"]
 
@@ -40,13 +42,14 @@ class controller:
             system( "set template files to {}".format( self.setting_path ) , mode=self.mode )
             message( "please set your data to {}".format( self.data_path ) )
             message( "please set information to {}".format( self.setting_path ) )
-            
+
         self.all_files = self.__get_all_files()
 
         return True
 
     def predict( self ):
-        pass
+        exec_infos = lib.json2dict( self.setting_path + "predict.json" )
+        print( exec_infos )
 
     def learn( self ):
         pass

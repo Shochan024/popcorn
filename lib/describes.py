@@ -6,7 +6,7 @@ import pandas as pd
 import seaborn as sns
 import japanize_matplotlib
 import matplotlib.pyplot as plt
-from .dict_module import *
+from .tools.dict_module import *
 from abc import ABCMeta , abstractmethod
 
 __all__ = ["lineplot","boxplot","barplot","pivot","notnull"]
