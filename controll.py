@@ -47,13 +47,13 @@ class controller:
         return True
 
     def predict( self ):
-        exec_infos = lib.json2dict( self.setting_path + "predict.json" )
-        exec_array = self.__get_exec( exec_infos=exec_infos )
-        for exec in exec_array:
-            self.__predict_dump( exec=exec , mode=self.mode )
+        pass
 
     def learn( self ):
-        pass
+        exec_infos = lib.json2dict( self.setting_path + "learn.json" )
+        exec_array = self.__get_exec( exec_infos=exec_infos )
+        for exec in exec_array:
+            self.__learn_dump( exec=exec , mode=self.mode )
 
     def csv( self ):
         #######################################
@@ -135,19 +135,20 @@ class controller:
     """
     Exe Local Methods
     """
-    def __predict_dump( self , exec , mode=0 ):
+    def __learn_dump( self , exec , mode=0 ):
         #######################################
         #           推定結果を出力する           #
         #######################################
         for path , dict in exec.items():
             df = pd.read_csv( path )
-            for predict_format , vals in dict.items():
-                predict_format = predict_format.split("_")[0]
-                exe = eval( "lib.{}".format( predict_format ) )( df , vals , path )
-                model = exe.predict()
+            for learn_format , vals in dict.items():
+                learn_format = learn_format.split("_")[0]
+                exe = eval( "lib.{}".format( learn_format ) )( df , vals , path )
+                model = exe.learn()
                 acc = exe.accuracy( model=model )
-                system( "{} N :: {} train accuracy :: {} test accuracy :: {}"\
-                .format( predict_format , acc["N"] , acc["train"] , acc["test"] ) )
+                exe.dump( model=model )
+                system( "Learning {} -> N :: {} train accuracy :: {} test accuracy :: {}"\
+                .format( learn_format , acc["N"] , acc["train"] , acc["test"] ) )
 
 
     def __aggregate_dump( self , exec , mode=0 ):

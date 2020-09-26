@@ -19,9 +19,9 @@ from sklearn.model_selection import train_test_split
 
 __all__ = ["decisiontree"]
 
-class Prediction(object,metaclass=ABCMeta):
+class Learning(object,metaclass=ABCMeta):
     @abstractmethod
-    def predict( self ):
+    def learn( self ):
         """
         推定メソッド
         --------------------------------
@@ -36,7 +36,15 @@ class Prediction(object,metaclass=ABCMeta):
         """
         raise NotImplementedError()
 
-class decisiontree(Prediction):
+    def dump( self ):
+        """
+        モデルを保存する
+        --------------------------------
+        """
+
+        raise NotImplementedError()
+
+class decisiontree(Learning):
     def __init__( self , df , cols , filename ):
         self.df = df
         self.filename = filename
@@ -55,7 +63,7 @@ class decisiontree(Prediction):
         for col in datetime_columns_arr:
             self.df[col] = pd.to_datetime( self.df[col] ).dt.strftime("%Y-%m-%d")
 
-    def predict( self ):
+    def learn( self ):
         df = self.df.query( self.query )
         X = df[self.x_cols]
         Y = df[self.y_cols]
@@ -92,6 +100,10 @@ class decisiontree(Prediction):
         test_acc = round( sum( predicted == Y_test ) / len( Y_test ) , 3 )
 
         return { "N" : N , "train" : train_acc , "test" : test_acc }
+
+    def dump( self , model ):
+        pass
+
 
     def __tree_plot( self , model , X , Y ):
         import matplotlib as mpl

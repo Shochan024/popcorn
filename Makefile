@@ -5,6 +5,7 @@ init:
 	pip install pydotplus
 	pip install category_encoders
 	mkdir -p plugins
+	mkdir -p models
 	rm -rf ./plugins/*
 	git clone https://github.com/Shochan024/gausian.git ./plugins/gausian
 	python main.py
