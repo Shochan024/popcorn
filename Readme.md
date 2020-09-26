@@ -5,7 +5,7 @@
 ## Getting Started
 好きなフォルダにcloneする
 ```bash
-git clone git@bitbucket.org:jockroiddev/fantas_pt.git /your_folder
+git clone https://github.com/Shochan024/popcorn.git /your_folder
 ```
 Pythonファイルから呼び出し、初期化する
 ```python
