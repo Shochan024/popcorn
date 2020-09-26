@@ -1,14 +1,17 @@
 #!-*-coding:utf-8-*-
 import os
+import sys
 import json
 import pydotplus
 import numpy as np
+import pandas as pd
 import matplotlib.pyplot as plt
 from abc import ABCMeta , abstractmethod
 from PIL import Image
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.tree import plot_tree
 from .tools.logger import *
+from .tools.file_modules import *
 
 __all__ = ["decisiontree"]
 
@@ -30,9 +33,14 @@ class decisiontree(Prediction):
         self.query = cols["query"]
         self.save = bool( cols["save"] )
 
+        datetime_columns_arr = datetime_colmuns( df=self.df )
+        for col in datetime_columns_arr:
+            self.df[col] = pd.to_datetime( self.df[col] ).dt.strftime("%Y-%m-%d")
+
     def predict( self ):
-        X = self.df[self.x_cols]
-        Y = self.df[self.y_cols]
+        df = self.df.query( self.query )
+        X = df[self.x_cols]
+        Y = df[self.y_cols]
         model = DecisionTreeClassifier()
         model.fit( X , Y )
 
