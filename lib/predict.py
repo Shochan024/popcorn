@@ -6,6 +6,7 @@ import pydotplus
 import numpy as np
 import pandas as pd
 import seaborn as sns
+import japanize_matplotlib
 import matplotlib.pyplot as plt
 from abc import ABCMeta , abstractmethod
 from PIL import Image
@@ -13,9 +14,7 @@ from sklearn.tree import DecisionTreeClassifier
 from sklearn.tree import plot_tree
 from .tools.logger import *
 from .tools.file_modules import *
-sns.set()
-sns.set(font='Yu Gothic')
-sns.set( font=["IPAexGothic"], font_scale=0.8 )
+
 
 __all__ = ["decisiontree"]
 
@@ -51,7 +50,7 @@ class decisiontree(Prediction):
         df = self.df.query( self.query )
         X = df[self.x_cols]
         Y = df[self.y_cols]
-        model = DecisionTreeClassifier(max_depth=3)
+        model = DecisionTreeClassifier(max_depth=self.max_depth)
         model.fit( X , Y )
 
         if self.save is True:
@@ -64,10 +63,11 @@ class decisiontree(Prediction):
         return model
 
     def __tree_plot( self , model , X , Y ):
-        fig = plt.figure()
+        import matplotlib as mpl
+        mpl.rcParams.update(mpl.rcParamsDefault)
+        fig = plt.figure(figsize=(10,8))
         ax = fig.add_subplot()
-        plot_tree( model , feature_names=self.x_cols , ax=ax ,\
-         class_names=np.unique( Y ).astype(np.str) , filled=True)
+        plot_tree( model , filled=True )
 
         filename = os.path.dirname( self.filename.replace( "datas" , "graphs" ) )
         filename = filename + "/decisiontree_{}_{}.png".\
@@ -80,6 +80,9 @@ class decisiontree(Prediction):
         plt.savefig( filename )
 
     def __importance_plot( self , model ):
+        sns.set()
+        sns.set(font='Yu Gothic')
+        sns.set( font=["IPAexGothic"], font_scale=0.8 )
         plt.cla()
         fig = plt.figure()
         ax = fig.add_subplot()
