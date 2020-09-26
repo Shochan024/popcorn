@@ -13,3 +13,4 @@ def preprocess():
     ini.csv()
     ini.aggregate()
     ini.describe()
+    init.predict()
