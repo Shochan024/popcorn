@@ -1,0 +1,9 @@
+{
+  "3_contract.csv":{
+    "merge":{
+      "with":"1_master.csv",
+      "mode":"left",
+      "on":"顧客ID"
+    }
+  }
+}
