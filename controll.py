@@ -145,7 +145,8 @@ class controller:
                 predict_format = predict_format.split("_")[0]
                 exe = eval( "lib.{}".format( predict_format ) )( df , vals , path )
                 model = exe.predict()
-                
+                exe.accuracy()
+
 
     def __aggregate_dump( self , exec , mode=0 ):
         #######################################

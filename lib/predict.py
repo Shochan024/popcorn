@@ -27,6 +27,14 @@ class Prediction(object,metaclass=ABCMeta):
         """
         raise NotImplementedError()
 
+    @abstractmethod
+    def accuracy( self ):
+        """
+        精度メソッド
+        --------------------------------
+        """
+        raise NotImplementedError()
+
 class decisiontree(Prediction):
     def __init__( self , df , cols , filename ):
         self.df = df
@@ -61,6 +69,9 @@ class decisiontree(Prediction):
             self.__importance_plot( model=model )
 
         return model
+
+    def accuracy( self ):
+        pass
 
     def __tree_plot( self , model , X , Y ):
         import matplotlib as mpl
