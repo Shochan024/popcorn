@@ -4,8 +4,9 @@ import sys
 import json
 import numpy as np
 import pandas as pd
+import category_encoders as ce
 from abc import ABCMeta , abstractmethod
-__all__ = ["merge","where","describe"]
+__all__ = ["merge","where","describe","categorical"]
 class CSVModule(object,metaclass=ABCMeta):
     @abstractmethod
     def __init__( self , path , vals ):
@@ -114,3 +115,28 @@ class describe(CSVModule):
          os.path.basename( self.path ).split(".")[0] )
 
         return { "csv_name": described_csv_name , "dataframe": df.describe() }
+
+class categorical(CSVModule):
+    """
+    DataFrameの特定の列を置換する
+    --------------------------------
+    path : 集計する元のcsvのpath <string>
+
+    vals : 出力するカラムの情報 <dict>
+    --------------------------------
+    """
+    def __init__( self , path , vals ):
+        self.path = path
+        self.vals = vals
+
+    def dump( self ):
+        df = pd.read_csv( self.path )
+        list_cols = json.loads( self.vals["columns"] )
+        ce_ohe = ce.OrdinalEncoder( cols=list_cols,handle_unknown='impute' )
+        df = ce_ohe.fit_transform( df )
+
+        save_path = os.path.dirname( self.path.replace("originals","shaped") )
+        replaced_csv_name = "{}/replaced_csv_name_{}.csv".format( save_path ,\
+         os.path.basename( self.path ).split(".")[0] )
+
+        return { "csv_name" : replaced_csv_name , "dataframe" : df }

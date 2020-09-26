@@ -44,6 +44,10 @@ csvを集計する設定ファイル
   * agg : 集計するカラムを選択
   * mode : 集計期間を選択
 
+#### 2. categorical_n : pivot tableを出力する
+
+  * columns : カテゴリ変数に変換するカラム
+
 ```json
 {
   "sample01.csv":{
@@ -58,6 +62,9 @@ csvを集計する設定ファイル
     "pivot_2":{
       "agg": "[\"契約日/契約予定日\",\"性別\",\"決済ステータスID\"]",
       "mode": "day"
+    },
+    "categorical_0":{
+      "columns":"[\"性別\",\"集客経路\"]"
     }
   },
   "sample02.csv":{
@@ -174,7 +181,7 @@ CSVを結合したり抽出する設定ファイル
   * x : 説明変数
   * y : 目的変数
   * query : DataFrameを抽出するquery
-  
+
 ```json
 {
   "sample.csv" : {
