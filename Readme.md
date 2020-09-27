@@ -1,6 +1,6 @@
-# データ前処理ツール(仮)
+# Popcorn
 
-データ前処理ツール(仮)は、データの前処理を簡単な設定ファイルで実行できる画期的なツールである。
+Popcornは、データの前処理や学習などを簡単な設定ファイルで実行できるツールである。
 
 ## Getting Started
 好きなフォルダにcloneする
@@ -32,7 +32,7 @@ datasには3つのフォルダが生成され、settingsには3つの設定フ�
       |-- aggregate.json
       |-- csv_controll.json
       |-- graphs.json
-      |-- predict.json
+      |-- learn.json
 ```
 
 ### settings/aggregate.json
@@ -172,15 +172,17 @@ CSVを結合したり抽出する設定ファイル
 
 ```
 
-### settings/predict.json
+### settings/learn.json
 
-推定モデルを実行する設定ファイル
+学習モデルを実行する設定ファイル
 
 #### 1. decisiontree_n : Decision Tree(決定木)を実行する
 
   * x : 説明変数
   * y : 目的変数
-  * query : DataFrameを抽出するquery
+  * query : DataFrameを抽出するquery queryを文字列で
+  * max_depth : 決定木の深さの上限 None , 1 , 2 ,,, n
+  * save : グラフを保存するか
 
 ```json
 {
@@ -188,7 +190,9 @@ CSVを結合したり抽出する設定ファイル
     "decisiontree_0" : {
       "x" : "[\"変数1\",\"変数2\"]",
       "y" : "[\"決済ステータスID\"]",
-      "query":"'2019-1-1' <= 申込日<= '2019-3-31'"
+      "query":"'2019-1-1' <= 申込日<= '2019-3-31'",
+      "max_depth" : "None",
+      "save":"True"
     }
   }
 }
