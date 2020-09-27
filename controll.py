@@ -50,6 +50,13 @@ class controller:
         return True
 
     def predict( self ):
+        """
+        import pickle as pkl
+
+        filename = "models/decisiontree_model_決済ステータスID_契約時年齢_契約時年収_金融機関_独身・既婚.sav"
+        model = pkl.load( open( filename , "rb" ) )
+        print( model )
+        """
         pass
 
     def learn( self ):
@@ -133,7 +140,6 @@ class controller:
 
 
         return exec_array
-
 
     """
     Exe Local Methods

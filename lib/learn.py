@@ -2,6 +2,7 @@
 import os
 import sys
 import json
+import pickle as pkl
 import pydotplus
 import numpy as np
 import pandas as pd
@@ -102,7 +103,13 @@ class decisiontree(Learning):
         return { "N" : N , "train" : train_acc , "test" : test_acc }
 
     def dump( self , model ):
-        pass
+        filename = os.path.dirname( self.filename.replace( "datas" , "models" ) )
+        filename = filename.replace("/shaped","")
+        filename = filename.replace("/originals","")
+        filename = filename.replace("/statistics","")
+        filename = filename + "/decisiontree_model_{}_{}.sav".\
+        format( self.y_cols[0] , "_".join( self.x_cols ) )
+        pkl.dump( model , open( filename , "wb" ) )
 
 
     def __tree_plot( self , model , X , Y ):
