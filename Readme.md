@@ -38,6 +38,7 @@ datasには3つのフォルダが生成され、settingsには3つの設定フ�
 ### settings/aggregate.json
 
 csvを集計する設定ファイル
+csv出力とグラフ出力の双方が伴う機能を集約
 
 #### 1. pivot_n : pivot tableを出力する
 
@@ -73,6 +74,7 @@ csvを集計する設定ファイル
 ### settings/csv_controll.json
 
 CSVを結合したり抽出する設定ファイル
+CSV出力を伴う機能が集約されている
 
 #### 1. merge : csvをmergeする
 
@@ -118,6 +120,8 @@ CSVを結合したり抽出する設定ファイル
 ```
 
 ### settings/graphs.json
+
+グラフ出力に関する設定ファイル
 
 #### 1. lineplot_n : 折れ線グラフを出力する
 
@@ -176,6 +180,7 @@ CSVを結合したり抽出する設定ファイル
 ### settings/learn.json
 
 学習モデルを実行する設定ファイル
+学習モデルのdumpやグラフ出力を伴う機能が集約されている
 
 #### 1. decisiontree_n : Decision Tree(決定木)を実行する
 
