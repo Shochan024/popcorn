@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 from .tools.dict_module import *
 from abc import ABCMeta , abstractmethod
 
-__all__ = ["lineplot","boxplot","barplot","pivot","notnull"]
+__all__ = ["lineplot","boxplot","barplot","notnull"]
 __all__ += ["pairplot","heatmap"]
 
 class Describe(object,metaclass=ABCMeta):
@@ -102,41 +102,6 @@ class barplot(Describe):
         sns.barplot( x=self.x_cols[0] , y=self.y_cols[0] , data=self.df )
 
         return fig
-
-
-class pivot(Describe):
-    """
-    DataFrameからpivot_tableを出力する
-    --------------------------------
-    df : データフレーム <DataFrame>
-        - pandasのdataframeオブジェクトを格納
-
-    cols : 出力するカラムの情報 <dict>
-        - cols["agg"] : 集計情報 <array>
-        - cols["mode"] : 時間間隔 <string>
-    --------------------------------
-    """
-    def __init__( self , df , cols ):
-        self.df = df
-        self.agg = cols["agg"]
-        self.mode = cols["mode"]
-
-    def dump( self ):
-        if self.mode == "month":
-            agg = json.loads( self.agg )
-            self.df[agg[0]] = pd.to_datetime( self.df[agg[0]] )\
-            .dt.strftime("%Y%m%d")
-            self.df[agg[0]] = pd.to_datetime( self.df[agg[0]] ).dt.strftime("%Y-%m")
-        else:
-            self.df[agg[0]] = pd.to_datetime( self.df[agg[0]] )
-
-        piv_df = self.df[[agg[0],agg[1],agg[2]]]
-        piv_df = piv_df[ piv_df[agg[0]] != "NaT" ]
-
-        pivot = piv_df.pivot_table( index=agg[0] , columns=agg[1] ,\
-         values=agg[2] , aggfunc="count" )
-
-        return pivot
 
 
 class notnull(Describe):
