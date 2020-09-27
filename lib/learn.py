@@ -109,6 +109,11 @@ class decisiontree(Learning):
         filename = filename.replace("/statistics","")
         filename = filename + "/decisiontree_model_{}_{}.sav".\
         format( self.y_cols[0] , "_".join( self.x_cols ) )
+
+        if os.path.exists( os.path.dirname( filename ) ) is not True:
+            message( "mkdir {}".format( os.path.dirname( filename ) ) )
+            os.makedirs( os.path.dirname( filename ) )
+            
         pkl.dump( model , open( filename , "wb" ) )
 
 
