@@ -163,8 +163,8 @@ class decisiontree(Learning,LearnController):
         plot_tree( model , filled=True )
 
         filename = os.path.dirname( self.filename.replace( "datas" , "graphs" ) )
-        filename = filename + "/decisiontree_{}_{}.png".\
-        format( self.y_cols[0] , "_".join( self.x_cols ) )
+        filename = filename + "/decisiontree_depth{}_{}_{}.png".\
+        format( self.max_depth , self.y_cols[0] , "_".join( self.x_cols ) )
         if os.path.exists( os.path.dirname( filename ) ) is not True:
             message( "mkdir {}".format( os.path.dirname( filename ) ) )
             os.makedirs( os.path.dirname( filename ) )
@@ -181,8 +181,8 @@ class decisiontree(Learning,LearnController):
         ax = fig.add_subplot()
         plt.xlim( 0 , 1 )
         filename = os.path.dirname( self.filename.replace( "datas" , "graphs" ) )
-        filename = filename + "/decisiontree_{}_{}_importance.png".\
-        format( self.y_cols[0] , "_".join( self.x_cols ) )
+        filename = filename + "/decisiontree_depth{}_{}_{}_importance.png".\
+        format( self.max_depth , self.y_cols[0] , "_".join( self.x_cols ) )
         plt.barh( self.x_cols , model.feature_importances_ )
         message( "saved Decision Tree feature importance image as {}".format( filename ) )
         plt.savefig( filename )

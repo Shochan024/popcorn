@@ -10,7 +10,7 @@ from .tools.dict_module import *
 from abc import ABCMeta , abstractmethod
 
 __all__ = ["lineplot","boxplot","barplot","notnull"]
-__all__ += ["pairplot","heatmap"]
+__all__ += ["pairplot","heatmap","hist"]
 
 class Describe(object,metaclass=ABCMeta):
     @abstractmethod
@@ -253,3 +253,28 @@ class stats_describe(Describe):
 
     def dump( self ):
         pass
+
+class hist(Describe):
+    """
+    DataFrameからヒストグラムを出力する
+    --------------------------------
+    df : データフレーム <DataFrame>
+        - pandasのdataframeオブジェクトを格納
+
+    cols : 出力するカラムの情報 <dict>
+        - cols["border"] : 望ましいサンプル数の割合 <array>
+        - cols["x"] : 割合の歩幅 <string>
+    --------------------------------
+    """
+    def __init__( self , df , cols ):
+        self.df = df
+        self.cols = cols
+
+    def dump( self ):
+        fig = plt.figure()
+
+        X = json.loads( self.cols["x"] )
+        X = np.array( self.df[X] )
+        plt.hist( X )
+
+        return fig
