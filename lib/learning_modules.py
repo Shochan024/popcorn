@@ -7,6 +7,7 @@ import pydotplus
 import numpy as np
 import pandas as pd
 import seaborn as sns
+import matplotlib as mpl
 import japanize_matplotlib
 import matplotlib.pyplot as plt
 from PIL import Image
@@ -15,12 +16,17 @@ from .tools.logger import *
 from .tools.file_modules import *
 from abc import ABCMeta , abstractmethod
 from sklearn.tree import DecisionTreeClassifier
+from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import train_test_split
 
 
-__all__ = ["decisiontree"]
+__all__ = ["decisiontree","logistic"]
+
 
 class Learning(object,metaclass=ABCMeta):
+    """
+    学習オブジェクトの抽象クラス
+    """
     @abstractmethod
     def learn( self ):
         """
@@ -37,6 +43,7 @@ class Learning(object,metaclass=ABCMeta):
         """
         raise NotImplementedError()
 
+    @abstractmethod
     def dump( self ):
         """
         モデルを保存する
@@ -45,8 +52,54 @@ class Learning(object,metaclass=ABCMeta):
 
         raise NotImplementedError()
 
-class decisiontree(Learning):
+class LearnController:
+    """
+    学習クラスの親クラス
+    """
+    def __init__( self ):
+        pass
+
+    def learning_set( self , model , df , query , x_cols , y_cols ):
+        if query != "":
+            df = df.query( query )
+
+        df = df.query( query )
+        X = df[x_cols]
+        Y = df[y_cols]
+
+        X_train , X_test , Y_train , Y_test = train_test_split( X , Y )
+
+        model.fit( X_train , Y_train )
+
+        return model
+
+
+
+    def acc_calc( self , model , df , query , x_cols , y_cols ):
+        if query != "":
+            df = df.query( query )
+
+        X = df[x_cols]
+        Y = df[y_cols]
+
+        X_train , X_test , Y_train , Y_test = train_test_split( X , Y )
+        Y_test = np.array( Y_test ).T[0]
+        predicted = model.predict( X_test )
+        predicted_train = model.predict( X_train )
+
+        N = len( predicted ) + len( predicted_train )
+
+        train_acc = round( sum( predicted_train ==\
+         np.array(Y_train).T[0] ) / len( predicted_train ) , 3 )
+
+        test_acc = round( sum( predicted == Y_test ) / len( Y_test ) , 3 )
+
+        return { "N" : N , "train" : train_acc , "test" : test_acc }
+
+
+class decisiontree(Learning,LearnController):
     def __init__( self , df , cols , filename ):
+        super(decisiontree, self).__init__()
         self.df = df
         self.filename = filename
         self.x_cols = json.loads( cols["x"] )
@@ -65,18 +118,12 @@ class decisiontree(Learning):
             self.df[col] = pd.to_datetime( self.df[col] ).dt.strftime("%Y-%m-%d")
 
     def learn( self ):
-        df = self.df.query( self.query )
-        X = df[self.x_cols]
-        Y = df[self.y_cols]
-
-        X_train , X_test , Y_train , Y_test = train_test_split( X , Y )
-
-        model = DecisionTreeClassifier(max_depth=self.max_depth)
-        model.fit( X_train , Y_train )
+        model = self.learning_set( model=DecisionTreeClassifier(max_depth=self.max_depth) ,\
+         df=self.df , query=self.query ,x_cols=self.x_cols , y_cols=self.y_cols )
 
         if self.save is True:
             # Plot Decision Tree
-            self.__tree_plot( model=model , X=X_train , Y=Y_train )
+            self.__tree_plot( model=model )
 
             # Plot feature importance
             self.__importance_plot( model=model )
@@ -84,23 +131,10 @@ class decisiontree(Learning):
         return model
 
     def accuracy( self , model ):
-        df = self.df.query( self.query )
-        X = df[self.x_cols]
-        Y = df[self.y_cols]
+        report_dict = self.acc_calc( model=model , df=self.df , query=self.query ,\
+         x_cols=self.x_cols , y_cols=self.y_cols )
 
-        X_train , X_test , Y_train , Y_test = train_test_split( X , Y )
-        Y_test = np.array( Y_test ).T[0]
-        predicted = model.predict( X_test )
-        predicted_train = model.predict( X_train )
-
-        N = len( predicted ) + len( predicted_train )
-
-        train_acc = round( sum( predicted_train ==\
-         np.array(Y_train).T[0] ) / len( predicted_train ) , 3 )
-
-        test_acc = round( sum( predicted == Y_test ) / len( Y_test ) , 3 )
-
-        return { "N" : N , "train" : train_acc , "test" : test_acc }
+        return report_dict
 
     def dump( self , model ):
         filename = os.path.dirname( self.filename.replace( "datas" , "models" ) )
@@ -118,8 +152,7 @@ class decisiontree(Learning):
         message( "decision tree model dumped as {}".format( filename ) )
 
 
-    def __tree_plot( self , model , X , Y ):
-        import matplotlib as mpl
+    def __tree_plot( self , model ):
         mpl.rcParams.update(mpl.rcParamsDefault)
         fig = plt.figure(figsize=(10,8))
         ax = fig.add_subplot()
@@ -149,3 +182,34 @@ class decisiontree(Learning):
         plt.barh( self.x_cols , model.feature_importances_ )
         message( "saved Decision Tree feature importance image as {}".format( filename ) )
         plt.savefig( filename )
+
+
+class logistic(Learning,LearnController):
+    def __init__( self , df , cols , filename ):
+        super(logistic, self).__init__()
+        self.df = df
+        self.filename = filename
+        self.x_cols = json.loads( cols["x"] )
+        self.y_cols = json.loads( cols["y"] )
+        self.query = cols["query"]
+        self.save = bool( cols["save"] )
+
+        datetime_columns_arr = datetime_colmuns( df=self.df )
+        for col in datetime_columns_arr:
+            self.df[col] = pd.to_datetime( self.df[col] ).dt.strftime("%Y-%m-%d")
+
+    def learn( self ):
+        model = self.learning_set( model=LogisticRegression() ,\
+         df=self.df , query=self.query ,x_cols=self.x_cols , y_cols=self.y_cols )
+
+        return model
+
+
+    def accuracy( self , model ):
+        report_dict = self.acc_calc( model=model , df=self.df , query=self.query ,\
+         x_cols=self.x_cols , y_cols=self.y_cols )
+
+        return report_dict
+
+    def dump( self , model ):
+        pass
