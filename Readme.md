@@ -10,7 +10,7 @@ git clone https://github.com/Shochan024/popcorn.git /your_folder
 Pythonファイルから呼び出し、初期化する
 ```python
 import popcorn as pcn
-pcn.set( data_path="/path/to/datapath/" , setting_path="/path/to/settingpath" )
+pcn.set( work_dir="/path/to/work_dir/" )
 pcn.preprocess() # 前処理
 pcn.exec() # 実行 学習や推定
 ```
