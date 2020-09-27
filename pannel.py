@@ -1,16 +1,26 @@
 #!-*-coding:utf-8-*-
 from .controll import controller as ctl
 
-__all__ = ["set","preprocess"]
+__all__ = ["set","preprocess","exec"]
 
 def set( work_dir , mode=2 ):
+    """
+    初期化
+    """
     global ini
     ini = ctl( work_dir=work_dir , mode=mode )
     ini.set()
-    return False
 
 def preprocess():
+    """
+    前処理
+    """
     ini.csv()
     ini.aggregate()
     ini.describe()
+
+def exec():
+    """
+    実行
+    """
     ini.learn()
