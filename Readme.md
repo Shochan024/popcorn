@@ -1,6 +1,6 @@
 # Popcorn
 
-Popcornは、データの前処理や学習などを簡単な設定ファイルで実行できるツールである。
+Popcornは、データの前処理や学習などを簡単な設定ファイルで実行できるツール
 
 ## Getting Started
 好きなフォルダにcloneする
@@ -11,7 +11,8 @@ Pythonファイルから呼び出し、初期化する
 ```python
 import popcorn as pcn
 pcn.set( data_path="/path/to/datapath/" , setting_path="/path/to/settingpath" )
-pcn.preprocess()
+pcn.preprocess() # 前処理
+pcn.exec() # 実行 学習や推定
 ```
 初期化により、設定ファイルとデータ格納用フォルダが生成されるので、必要情報を記述する
 
