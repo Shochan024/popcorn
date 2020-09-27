@@ -43,7 +43,7 @@ class pivot(Aggregate):
             self.df[agg[0]] = pd.to_datetime( self.df[agg[0]] )\
             .dt.strftime("%Y%m%d")
             self.df[agg[0]] = pd.to_datetime( self.df[agg[0]] ).dt.strftime("%Y-%m")
-        else:
+        elif self.mode == "day":
             self.df[agg[0]] = pd.to_datetime( self.df[agg[0]] )
 
         piv_df = self.df[[agg[0],agg[1],agg[2]]]
