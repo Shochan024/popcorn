@@ -113,8 +113,9 @@ class decisiontree(Learning):
         if os.path.exists( os.path.dirname( filename ) ) is not True:
             message( "mkdir {}".format( os.path.dirname( filename ) ) )
             os.makedirs( os.path.dirname( filename ) )
-            
+
         pkl.dump( model , open( filename , "wb" ) )
+        message( "decision tree model dumped as {}".format( filename ) )
 
 
     def __tree_plot( self , model , X , Y ):

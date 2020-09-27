@@ -5,6 +5,7 @@ import json
 import numpy as np
 import pandas as pd
 import category_encoders as ce
+from .tools.file_modules import *
 from abc import ABCMeta , abstractmethod
 __all__ = ["merge","where","describe","categorical"]
 class CSVModule(object,metaclass=ABCMeta):
@@ -61,7 +62,7 @@ class where(CSVModule):
     def dump( self ):
         query = self.vals["query"]
         df = pd.read_csv( self.path )
-        datetime_columns_arr = self.__datetime_colmuns( df=df )
+        datetime_columns_arr = datetime_colmuns( df=df )
         for col in datetime_columns_arr:
             df[ df[ col ] =="0000-00-00" ] = np.nan
             df[col] = pd.to_datetime( df[col] )
@@ -71,23 +72,6 @@ class where(CSVModule):
          os.path.basename( self.path ).split(".")[0] )
 
         return { "csv_name": driped_csv_name , "dataframe": df.query("{}".format(query)) }
-
-
-    def __datetime_colmuns( self , df ):
-        #本来datetime型であるが、strになってしまっているカラムを取得
-        datetime_columns_arr = []
-        columns = df.columns
-        for col in columns:
-            arr = list( df[col].dropna() )
-            try:
-                if isinstance(arr[0],float) is not True and isinstance(arr[0],int) is not True:
-                    datetimes = pd.to_datetime( arr[0] )
-                    datetime_columns_arr.append( col )
-
-            except:
-                continue
-
-        return datetime_columns_arr
 
 
 class describe(CSVModule):
