@@ -74,7 +74,6 @@ class LearnController:
         return model
 
 
-
     def acc_calc( self , model , df , query , x_cols , y_cols ):
         if query != "":
             df = df.query( query )
@@ -95,6 +94,21 @@ class LearnController:
         test_acc = round( sum( predicted == Y_test ) / len( Y_test ) , 3 )
 
         return { "N" : N , "train" : train_acc , "test" : test_acc }
+
+    def model_save( self , model , filename , modelname , x_cols , y_cols ):
+        filename = os.path.dirname( filename.replace( "datas" , "models" ) )
+        filename = filename.replace("/shaped","")
+        filename = filename.replace("/originals","")
+        filename = filename.replace("/statistics","")
+        filename = filename + "/{}_model_{}_{}.sav".\
+        format( modelname , y_cols[0] , "_".join( x_cols ) )
+
+        if os.path.exists( os.path.dirname( filename ) ) is not True:
+            message( "mkdir {}".format( os.path.dirname( filename ) ) )
+            os.makedirs( os.path.dirname( filename ) )
+
+        pkl.dump( model , open( filename , "wb" ) )
+        message( "{} tree model dumped as {}".format( modelname , filename ) )
 
 
 class decisiontree(Learning,LearnController):
@@ -137,19 +151,8 @@ class decisiontree(Learning,LearnController):
         return report_dict
 
     def dump( self , model ):
-        filename = os.path.dirname( self.filename.replace( "datas" , "models" ) )
-        filename = filename.replace("/shaped","")
-        filename = filename.replace("/originals","")
-        filename = filename.replace("/statistics","")
-        filename = filename + "/decisiontree_model_{}_{}.sav".\
-        format( self.y_cols[0] , "_".join( self.x_cols ) )
-
-        if os.path.exists( os.path.dirname( filename ) ) is not True:
-            message( "mkdir {}".format( os.path.dirname( filename ) ) )
-            os.makedirs( os.path.dirname( filename ) )
-
-        pkl.dump( model , open( filename , "wb" ) )
-        message( "decision tree model dumped as {}".format( filename ) )
+        self.model_save( model=model , filename=self.filename ,\
+         modelname="decisiontree" , x_cols=self.x_cols , y_cols=self.y_cols )
 
 
     def __tree_plot( self , model ):
@@ -212,4 +215,5 @@ class logistic(Learning,LearnController):
         return report_dict
 
     def dump( self , model ):
-        pass
+        self.model_save( model=model , filename=self.filename ,\
+         modelname="logistic" , x_cols=self.x_cols , y_cols=self.y_cols )
