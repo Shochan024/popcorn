@@ -24,3 +24,4 @@ def exec():
     実行
     """
     ini.learn()
+    ini.simuration()
