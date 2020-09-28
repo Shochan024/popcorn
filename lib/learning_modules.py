@@ -233,11 +233,17 @@ class logistic(Learning,LearnController):
         N = len( Y_test )
         bins_num = int( ( ( N / N ** 0.5 ) * 0.5 ) * 2 )
 
+        pred = model.predict( X_test )
+        pred = sum( pred ) / len( pred )
+        system( "1:{},0:{}".format( pred , 1-pred ) )
+
+
         prob = model.predict_proba( X_test )[:,1]
         prob_true , prob_pred = calibration_curve( y_true=Y_test ,\
          y_prob=prob , n_bins=bins_num )
 
-        probablility = round( np.sum(np.array(Y).astype(np.int)) / len(Y) , 3 )
+
+        probablility = round( np.sum(np.array(Y_test).astype(np.int)) / len(Y_test) , 3 )
 
         fig = plt.figure()
         ax1 = plt.subplot(2,1,1)

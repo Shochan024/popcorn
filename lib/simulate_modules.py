@@ -24,7 +24,7 @@ class Simurater(object,metaclass=ABCMeta):
         raise NotImplementedError()
 
 
-class logisticRegression:
+class logisticRegression(Simurater):
     def __init__( self , options , workdir ):
         self.options = options
         self.workdir = workdir
