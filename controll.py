@@ -26,6 +26,7 @@ class backborn:
         self.data_path = work_dir + "datas/"
         self.setting_path = work_dir + "settings/"
         self.models_path = work_dir + "models/"
+        self.simurates_path = work_dir + "simurates/"
         self.mode = mode
 
     def set( self ):
@@ -55,7 +56,7 @@ class backborn:
         for model , options in exec_infos.items():
             exec = eval( "lib.{}".format( model ) )
             for method , details in options.items():
-                exec = exec( details )
+                exec = exec( details , self.simurates_path )
                 eval( "exec.{}".format( method ) )()
 
     def predict( self ):

@@ -25,8 +25,9 @@ class Simurater(object,metaclass=ABCMeta):
 
 
 class logisticRegression:
-    def __init__( self , options ):
+    def __init__( self , options , workdir ):
         self.options = options
+        self.workdir = workdir
 
     def performance( self ):
         sns.set()
@@ -50,8 +51,8 @@ class logisticRegression:
         n_redundant = int( json.loads( property["detail"]["n_redundant"] ) )
         frames = np.arange( n_features+n_informative*2,N,int( max(1,( N**0.5 )  ) ) )
 
-        filename = "{}/../simurates/logistic/{}_N{}_probability{}_informative{}_n_features{}_n_redundant{}.gif".\
-        format( os.path.dirname( __file__ ) ,\
+        filename = "{}logistic/{}_N{}_probability{}_informative{}_n_features{}_n_redundant{}.gif".\
+        format( self.workdir ,\
          "calibration" , N , probability , n_informative , n_features , n_redundant )
 
         fig = plt.figure()
