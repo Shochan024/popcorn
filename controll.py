@@ -10,9 +10,9 @@ import pandas as pd
 from lib.tools.logger import *
 
 warnings.simplefilter("ignore")
-__all__ = ["controller"]
+__all__ = ["backborn"]
 
-class controller:
+class backborn:
     """
     様々な機能をコントロールする箱
     --------------------------------
@@ -48,6 +48,13 @@ class controller:
         self.all_files = self.__get_all_files()
 
         return True
+
+    def simuration( self ):
+        exec_infos = lib.json2dict( self.setting_path + "simurate.json" )
+        for model , options in exec_infos.items():
+            exec = eval( "lib.{}".format( model ) )(options=options)
+            for method , details in options.items():
+                eval( "exec.{}".format( method ) )()
 
     def predict( self ):
         """
@@ -152,6 +159,7 @@ class controller:
             df = pd.read_csv( path )
             for learn_format , vals in dict.items():
                 learn_format = learn_format.split("_")[0]
+                print( eval( "lib.{}".format( learn_format ) ) )
                 exe = eval( "lib.{}".format( learn_format ) )( df , vals , path )
                 model = exe.learn()
                 acc = exe.accuracy( model=model )

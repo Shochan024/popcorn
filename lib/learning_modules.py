@@ -230,9 +230,12 @@ class logistic(Learning,LearnController):
         Y = df[y_cols]
         X_train , X_test , Y_train , Y_test = train_test_split( X , Y )
 
+        N = len( Y_test )
+        bins_num = int( ( ( N / N ** 0.5 ) * 0.5 ) * 2 )
+
         prob = model.predict_proba( X_test )[:,1]
         prob_true , prob_pred = calibration_curve( y_true=Y_test ,\
-         y_prob=prob , n_bins=40 )
+         y_prob=prob , n_bins=bins_num )
 
         fig = plt.figure()
         ax1 = plt.subplot(2,1,1)

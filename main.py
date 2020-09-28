@@ -2,9 +2,10 @@
 import os
 from controll import *
 
-ctl = controller( work_dir = "./" , mode=2 )
+ctl = backborn( work_dir = "./" , mode=2 )
 
-ctl.csv()
-ctl.aggregate()
-ctl.describe()
-ctl.learn()
+ctl.simuration()
+#ctl.csv()
+#ctl.aggregate()
+#ctl.describe()
+#ctl.learn()
