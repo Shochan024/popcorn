@@ -1,8 +1,16 @@
 #!-*-coding:utf-8-*-
+import os
+import sys
+import json
+import numpy as np
+import matplotlib.pyplot as plt
+import matplotlib.animation as animation
 from abc import ABCMeta , abstractmethod
 from sklearn.datasets import make_classification
 from sklearn.calibration import calibration_curve
+from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import train_test_split
+from .tools.logger import *
 
 __all__ = ["logisticRegression"]
 
@@ -20,39 +28,61 @@ class logisticRegression:
         self.options = options
 
     def performance( self ):
+        for how , property in self.options.items():
+            how = how.split("_")[0]
+            model = LogisticRegression()
+            result = eval( "self._{}".format( how ) )( model=model , property=property )
+            filename = result["filename"]
+            if os.path.exists( os.path.dirname( filename ) ) is not True:
+                message( "mkdir {}".format( os.path.dirname( filename ) ) )
+                os.makedirs( os.path.dirname( filename ) )
 
-        """
-        N=10000
-        X, Y = make_classification(n_samples=N, n_features=20, n_informative=2, n_redundant=2)
-        fig = self.__calibration( X=X,Y=Y )
+            message( "saved calibration_curve image as {}".format( filename ) )
+            plt.savefig( filename )
 
-        filename = "a.png"
-        if os.path.exists( os.path.dirname( filename ) ) is not True:
-            message( "mkdir {}".format( os.path.dirname( filename ) ) )
-            os.makedirs( os.path.dirname( filename ) )
+    def _calibration( self , model , property ):
+        N = json.loads( property["N"] )
+        n_features = json.loads( property["detail"]["n_features"] )
+        n_informative = int( json.loads( property["detail"]["n_informative"] ) )
+        n_redundant = int( json.loads( property["detail"]["n_redundant"] ) )
 
-        message( "saved calibration_curve image as {}".format( filename ) )
-        plt.savefig( filename )
-        """
-        print(self.options)
+        filename = "{}/../simurates/logistic/{}_N{}_n_informative{}_n_features{}_n_redundant{}.png".\
+        format( os.path.dirname( __file__ ) , "calibration" , N , 2 , 20 , 2 )
 
-    def __calibration( X , Y ):
+        ims = []
+        fig = plt.figure()
+        ani = animation.FuncAnimation(fig, self._update,\
+        frames=np.arange( n_features+n_informative+1,N,int( max(1,( N**0.5 )  ) ) ) ,\
+         interval=500 )
+
+        plt.show()
+
+        sys.exit()
+
+        return { "filename" : filename , "fig" : fig }
+
+    def _update( self , n ):
+        model = LogisticRegression()
+        X, Y = make_classification( n_samples=n,\
+         n_features=20, n_informative=2, n_redundant=2)
+
         X_train , X_test , Y_train , Y_test = train_test_split( X , Y )
+        model.fit( X_test , Y_test  )
         N = len( Y_test )
-        bins_num = int( ( ( N / N ** 0.5 ) * 0.5 ) * 2 )
+        bins_num = max( 10 , int( ( ( N / N ** 0.5 ) * 0.5 ) * 2 ) )
 
         prob = model.predict_proba( X_test )[:,1]
         prob_true , prob_pred = calibration_curve( y_true=Y_test ,\
-         y_prob=prob , n_bins=bins_num )
+        y_prob=prob , n_bins=bins_num )
 
-        fig = plt.figure()
         ax1 = plt.subplot(2,1,1)
+        ax1.cla()
+        ax1.set_title( "SAMPLE NUM={}".format( n ) )
         ax1.plot( prob_pred , prob_true , marker="s" , label="calibration_curve" )
         ax1.plot( [0,1],[0,1],linestyle="--",label="ideal" )
-        ax1.legend()
+        #ax1.legend()
 
         ax2 = plt.subplot(2,1,2)
+        ax2.cla()
         ax2.hist( prob , bins=40 , histtype="step" )
         ax2.set_xlim(0,1)
-
-        return fig

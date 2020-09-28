@@ -53,8 +53,9 @@ class backborn:
     def simuration( self ):
         exec_infos = lib.json2dict( self.setting_path + "simurate.json" )
         for model , options in exec_infos.items():
-            exec = eval( "lib.{}".format( model ) )(options=options)
+            exec = eval( "lib.{}".format( model ) )
             for method , details in options.items():
+                exec = exec( details )
                 eval( "exec.{}".format( method ) )()
 
     def predict( self ):
@@ -160,7 +161,6 @@ class backborn:
             df = pd.read_csv( path )
             for learn_format , vals in dict.items():
                 learn_format = learn_format.split("_")[0]
-                print( eval( "lib.{}".format( learn_format ) ) )
                 exe = eval( "lib.{}".format( learn_format ) )( df , vals , path )
                 model = exe.learn()
                 acc = exe.accuracy( model=model )
