@@ -3,6 +3,7 @@ import os
 import sys
 import json
 import numpy as np
+import seaborn as sns
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 from abc import ABCMeta , abstractmethod
@@ -28,6 +29,7 @@ class logisticRegression:
         self.options = options
 
     def performance( self ):
+        sns.set()
         for how , property in self.options.items():
             how = how.split("_")[0]
             model = LogisticRegression()
@@ -48,25 +50,29 @@ class logisticRegression:
         n_redundant = int( json.loads( property["detail"]["n_redundant"] ) )
         frames = np.arange( n_features+n_informative*2,N,int( max(1,( N**0.5 )  ) ) )
 
-        filename = "{}/../simurates/logistic/{}_N{}_n_\
-        _probability{}_informative{}_n_features{}_n_redundant{}.gif".\
+        filename = "{}/../simurates/logistic/{}_N{}_probability{}_informative{}_n_features{}_n_redundant{}.gif".\
         format( os.path.dirname( __file__ ) ,\
-         "calibration" , N , probability , n_informative , n_informative , n_redundant )
+         "calibration" , N , probability , n_informative , n_features , n_redundant )
 
         fig = plt.figure()
         ani = animation.FuncAnimation(fig,self._update,\
-        fargs=([n_features,n_informative,n_redundant,probability],),frames=frames ,interval=500 )
+        fargs=([n_features,n_informative,n_redundant,probability],),frames=frames ,interval=100 )
 
         return { "filename" : filename , "fig" : ani }
 
     def _update( self , n , details ):
         model = LogisticRegression(random_state=0)
-        X, Y = make_classification( n_samples=n,\
-         n_features=details[0], n_informative=details[1],n_classes=2,weights=[details[3],1-details[3] ],\
+        X, Y = make_classification( n_samples=n,scale=100,\
+         n_features=details[0], n_informative=details[1],n_classes=2,weights=[1-details[3],details[3] ],\
           n_redundant=details[2],random_state=0,shuffle=False)
 
         X_train , X_test , Y_train , Y_test = train_test_split( X , Y )
-        model.fit( X_test , Y_test  )
+        # すべての要素が同じだとエラーになるので、まだらになるまで分割を繰り返す
+        if len( np.unique( Y_train ) ) < 2:
+            while len( np.unique( Y_train ) ) < 2:
+                X_train , X_test , Y_train , Y_test = train_test_split( X , Y )
+
+        model.fit( X_train , Y_train  )
         N = len( Y_test )
         bins_num = max( 10 , int( ( ( N / N ** 0.5 ) * 0.5 ) * 2 ) )
 
@@ -79,7 +85,6 @@ class logisticRegression:
         ax1.set_title( "FEATURE={},PROB={},SAMPLE NUM={}".format( details[0],details[3] , n ) )
         ax1.plot( prob_pred , prob_true , marker="s" , label="calibration_curve" )
         ax1.plot( [0,1],[0,1],linestyle="--",label="ideal" )
-        #ax1.legend()
 
         ax2 = plt.subplot(2,1,2)
         ax2.cla()

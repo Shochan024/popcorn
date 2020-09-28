@@ -239,6 +239,7 @@ class logistic(Learning,LearnController):
 
         fig = plt.figure()
         ax1 = plt.subplot(2,1,1)
+        ax1.set_title("TEST SAMPLE NUM={}".format(N))
         ax1.plot( prob_pred , prob_true , marker="s" , label="calibration_curve" )
         ax1.plot( [0,1],[0,1],linestyle="--",label="ideal" )
         ax1.legend()
