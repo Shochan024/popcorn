@@ -37,34 +37,33 @@ class logisticRegression:
                 message( "mkdir {}".format( os.path.dirname( filename ) ) )
                 os.makedirs( os.path.dirname( filename ) )
 
+            result["fig"].save( filename )
             message( "saved calibration_curve image as {}".format( filename ) )
-            plt.savefig( filename )
 
     def _calibration( self , model , property ):
         N = json.loads( property["N"] )
+        probability = float( json.loads( property["detail"]["probability"] ) )
         n_features = json.loads( property["detail"]["n_features"] )
         n_informative = int( json.loads( property["detail"]["n_informative"] ) )
         n_redundant = int( json.loads( property["detail"]["n_redundant"] ) )
+        frames = np.arange( n_features+n_informative*2,N,int( max(1,( N**0.5 )  ) ) )
 
-        filename = "{}/../simurates/logistic/{}_N{}_n_informative{}_n_features{}_n_redundant{}.png".\
-        format( os.path.dirname( __file__ ) , "calibration" , N , 2 , 20 , 2 )
+        filename = "{}/../simurates/logistic/{}_N{}_n_\
+        _probability{}_informative{}_n_features{}_n_redundant{}.gif".\
+        format( os.path.dirname( __file__ ) ,\
+         "calibration" , N , probability , n_informative , n_informative , n_redundant )
 
-        ims = []
         fig = plt.figure()
-        ani = animation.FuncAnimation(fig, self._update,\
-        frames=np.arange( n_features+n_informative+1,N,int( max(1,( N**0.5 )  ) ) ) ,\
-         interval=500 )
+        ani = animation.FuncAnimation(fig,self._update,\
+        fargs=([n_features,n_informative,n_redundant,probability],),frames=frames ,interval=500 )
 
-        plt.show()
+        return { "filename" : filename , "fig" : ani }
 
-        sys.exit()
-
-        return { "filename" : filename , "fig" : fig }
-
-    def _update( self , n ):
-        model = LogisticRegression()
+    def _update( self , n , details ):
+        model = LogisticRegression(random_state=0)
         X, Y = make_classification( n_samples=n,\
-         n_features=20, n_informative=2, n_redundant=2)
+         n_features=details[0], n_informative=details[1],n_classes=2,weights=[details[3],1-details[3] ],\
+          n_redundant=details[2],random_state=0,shuffle=False)
 
         X_train , X_test , Y_train , Y_test = train_test_split( X , Y )
         model.fit( X_test , Y_test  )
@@ -77,7 +76,7 @@ class logisticRegression:
 
         ax1 = plt.subplot(2,1,1)
         ax1.cla()
-        ax1.set_title( "SAMPLE NUM={}".format( n ) )
+        ax1.set_title( "FEATURE={},PROB={},SAMPLE NUM={}".format( details[0],details[3] , n ) )
         ax1.plot( prob_pred , prob_true , marker="s" , label="calibration_curve" )
         ax1.plot( [0,1],[0,1],linestyle="--",label="ideal" )
         #ax1.legend()
