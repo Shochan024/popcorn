@@ -36,6 +36,7 @@ class backborn:
             os.makedirs( self.data_path + "originals" )
             os.makedirs( self.data_path + "shaped" )
             os.makedirs( self.data_path + "statistics" )
+            os.makedirs( self.data_path + "simurates" )
             message( "mkdir {}".format( self.data_path ) , mode=self.mode )
 
         if os.path.exists( self.setting_path ) is not True:

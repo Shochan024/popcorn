@@ -3,6 +3,7 @@
 /settings/*
 /models/*
 /graphs/*
+/simurates/*
 /__pycache__/*
 /lib/__pycache__/*
 /lib/tools/__pycache__/*
