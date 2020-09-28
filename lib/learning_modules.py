@@ -237,9 +237,11 @@ class logistic(Learning,LearnController):
         prob_true , prob_pred = calibration_curve( y_true=Y_test ,\
          y_prob=prob , n_bins=bins_num )
 
+        probablility = round( np.sum(np.array(Y).astype(np.int)) / len(Y) , 3 )
+
         fig = plt.figure()
         ax1 = plt.subplot(2,1,1)
-        ax1.set_title("TEST SAMPLE NUM={}".format(N))
+        ax1.set_title("FEATURE={},PROB={},TEST SAMPLE NUM={}".format(X.shape[1],probablility,N))
         ax1.plot( prob_pred , prob_true , marker="s" , label="calibration_curve" )
         ax1.plot( [0,1],[0,1],linestyle="--",label="ideal" )
         ax1.legend()

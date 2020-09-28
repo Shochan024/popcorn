@@ -4,8 +4,8 @@ from controll import *
 
 ctl = backborn( work_dir = "./" , mode=2 )
 
-#ctl.csv()
-#ctl.aggregate()
-#ctl.describe()
+ctl.csv()
+ctl.aggregate()
+ctl.describe()
 ctl.learn()
 ctl.simuration()
