@@ -138,7 +138,8 @@ class decisiontree(Learning,LearnController):
 
         if self.save is True:
             # Plot Decision Tree
-            self.__tree_plot( model=model )
+            self.__tree_plot( model=model , df=self.df ,\
+             query=self.query , x_cols=self.x_cols , y_cols=self.y_cols )
 
             # Plot feature importance
             self.__importance_plot( model=model )
@@ -156,11 +157,25 @@ class decisiontree(Learning,LearnController):
          modelname="decisiontree" , x_cols=self.x_cols , y_cols=self.y_cols )
 
 
-    def __tree_plot( self , model ):
+    def __tree_plot( self , model , df , query , x_cols , y_cols ):
+        #sns.set(font='Yu Gothic')
+        #sns.set( font=["IPAexGothic"], font_scale=10 / 6 )
+        if query != "":
+            df = df.query( query )
+
+        X = df[x_cols]
+        Y = df[y_cols]
+        X_train , X_test , Y_train , Y_test = train_test_split( X , Y )
+
         mpl.rcParams.update(mpl.rcParamsDefault)
+        plt.rcParams["font.family"] = "IPAexGothic"
         fig = plt.figure(figsize=(10,8))
         ax = fig.add_subplot()
-        plot_tree( model , filled=True )
+        plot_tree( model , filled=True , feature_names=x_cols )
+
+        pred = model.predict( X_test )
+        pred = round( sum( pred ) / len( pred ) , 3 )
+        system( "1:{},0:{}".format( pred , 1-pred ) )
 
         filename = os.path.dirname( self.filename.replace( "datas" , "graphs" ) )
         filename = filename + "/decisiontree_depth{}_{}_{}.png".\
@@ -234,7 +249,7 @@ class logistic(Learning,LearnController):
         bins_num = int( ( ( N / N ** 0.5 ) * 0.5 ) * 2 )
 
         pred = model.predict( X_test )
-        pred = sum( pred ) / len( pred )
+        pred = round( sum( pred ) / len( pred ) , 3 )
         system( "1:{},0:{}".format( pred , 1-pred ) )
 
 
