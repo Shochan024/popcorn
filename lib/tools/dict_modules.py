@@ -16,7 +16,7 @@ def split_dict( dict , value_every ):
     for i in range( len( value_every ) - 1 ):
         tmp_dict = {}
         for key , value in dict.items():
-            if value >= value_every[i] and value < value_every[i+1]:
+            if value > value_every[i] and value <= value_every[i+1]:
                 tmp_dict[key] = value
 
         arr[ str( value_every[i] ) + "-" + str( value_every[i+1] ) ] = tmp_dict

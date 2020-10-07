@@ -200,8 +200,8 @@ class backborn:
         for path , dict in exec.items():
             df = pd.read_csv( path )
             for graph_format , vals in dict.items():
-                #設定ファイルにあるメソッド名を動的に実行
-                graph_format = graph_format.split("_")[0] #連番を除去
+                # 設定ファイルにあるメソッド名を動的に実行
+                graph_format = graph_format.split("_")[0] # 連番を除去
                 exe = eval( "lib.{}".format( graph_format ) )( df , vals )
                 figure_obj = exe.dump()
                 save_path = os.path.dirname( path.replace("datas","graphs") )

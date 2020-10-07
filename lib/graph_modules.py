@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 from .tools.dict_modules import *
 from abc import ABCMeta , abstractmethod
 
-__all__ = ["lineplot","boxplot","barplot","notnull"]
+__all__ = ["lineplot","boxplot","barplot","notnull","unique"]
 __all__ += ["pairplot","heatmap","hist"]
 
 class Describe(object,metaclass=ABCMeta):
@@ -180,6 +180,46 @@ class notnull(Describe):
 
         return dict
 
+
+class unique(Describe):
+    """
+    DataFrameからunique件数の棒グラフを出力する
+    --------------------------------
+    df : データフレーム <DataFrame>
+        - pandasのdataframeオブジェクトを格納
+
+    cols : 出力するカラムの情報 <dict>
+        - cols["x"] : 割合の歩幅 <string>
+    --------------------------------
+    """
+    def __init__( self , df , cols ):
+        self.df = df
+        self.x_cols = json.loads( cols["x"] )
+        self.x_title = "変数名"
+        self.y_title = "欠損値ではない割合"
+
+    def dump( self ):
+        plt.cla()
+        sns.set(font='Yu Gothic')
+        sns.set( font=["IPAexGothic"], font_scale=10 / 6 )
+        sns.set_palette( "deep" )
+        sns.set_context( "paper" , 0.8, { "lines.linewidth" : 1 } )
+
+        fig = plt.figure()
+        X = np.array( self.df[self.x_cols] ).astype(np.str)
+        plot_dict = {}
+        for i in range(X.shape[1]):
+            plot_dict[self.x_cols[i]] = np.unique( X[:,i] ).shape[0]
+
+        labels = list( plot_dict.keys() )
+        values = list( plot_dict. values() )
+        plot_x = np.arange(1,len(labels)+1)
+        plt.barh( plot_x , values )
+        plt.yticks( plot_x , labels )
+
+        return fig
+
+
 class pairplot(Describe):
     """
     DataFrameからPairPlotを出力する
@@ -274,7 +314,7 @@ class hist(Describe):
         fig = plt.figure()
 
         X = json.loads( self.cols["x"] )
-        X = np.array( self.df[X] )
+        X = np.array( self.df[X].dropna() )
         plt.hist( X )
 
         return fig
