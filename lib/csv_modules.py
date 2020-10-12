@@ -7,7 +7,7 @@ import pandas as pd
 import category_encoders as ce
 from .tools.file_modules import *
 from abc import ABCMeta , abstractmethod
-__all__ = ["merge","where","describe","categorical"]
+__all__ = ["merge","where","describe","categorical","valuecounts","withoutdup"]
 class CSVModule(object,metaclass=ABCMeta):
     @abstractmethod
     def __init__( self , path , vals ):
@@ -58,10 +58,13 @@ class where(CSVModule):
     def __init__( self , path , vals ):
         self.path = path
         self.vals = vals
+        self.cols = json.loads( self.vals["columns"] )
 
     def dump( self ):
         query = self.vals["query"]
         df = pd.read_csv( self.path )
+        if len( self.cols ) > 0:
+            df = df[ self.cols ]
         datetime_columns_arr = datetime_colmuns( df=df )
         for col in datetime_columns_arr:
             df[ df[ col ] =="0000-00-00" ] = np.nan
@@ -73,6 +76,38 @@ class where(CSVModule):
 
         return { "csv_name": driped_csv_name , "dataframe": df.query("{}".format(query)) }
 
+class valuecounts(CSVModule):
+    def __init__( self , path , vals ):
+        self.path = path
+        self.vals = vals
+
+    def dump( self ):
+        col = self.vals["column"]
+        df = pd.read_csv( self.path )
+        df = df[ col ]
+        save_path = os.path.dirname( self.path.replace("originals","statistics") )
+        save_path = save_path.replace("shaped","statistics")
+        value_count_csv_name = "{}/value_count_{}.csv".format( save_path ,\
+         os.path.basename( self.path ).split(".")[0] )
+
+        return { "csv_name": value_count_csv_name , "dataframe": df.value_counts() }
+
+class withoutdup(CSVModule):
+    def __init__( self , path , vals ):
+        self.path = path
+        self.vals = vals
+
+    def dump( self ):
+        col = self.vals["column"]
+        df = pd.read_csv( self.path )
+        df = df[ ~df[ col ].duplicated() ]
+
+        save_path = os.path.dirname( self.path.replace("originals","shaped") )
+        save_path = save_path.replace("shaped","shaped")
+        value_count_csv_name = "{}/withoutdup_{}.csv".format( save_path ,\
+         os.path.basename( self.path ).split(".")[0] )
+
+        return { "csv_name": value_count_csv_name , "dataframe": df }
 
 class describe(CSVModule):
     """

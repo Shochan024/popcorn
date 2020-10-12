@@ -4,6 +4,9 @@
       "with":"1_master.csv",
       "mode":"left",
       "on":"顧客ID"
+    },
+    "where":{
+      "columns" : "[]"
     }
   }
 }
