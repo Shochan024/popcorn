@@ -65,8 +65,8 @@ class LearnController:
             df = df.query( query )
 
         df = df.query( query )
-        X = df[x_cols]
-        Y = df[y_cols]
+        X = df[x_cols].astype("float64")
+        Y = df[y_cols].astype("float64")
 
         X_train , X_test , Y_train , Y_test = train_test_split( X , Y )
 

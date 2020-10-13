@@ -64,7 +64,7 @@ class describe(Aggregate):
     --------------------------------
     """
     def __init__( self , df , cols ):
-        self.cols = json.loads( cols["columns"] )
+        self.cols = json.loads( cols["agg"] )
         self.df = df
 
     def dump( self ):
@@ -75,3 +75,16 @@ class describe(Aggregate):
 
 
         return df.describe()
+
+
+class valuecounts(Aggregate):
+    def __init__( self , df , cols ):
+        self.cols = json.loads( cols["agg"] )
+        self.df = df
+
+    def dump( self ):
+        col = self.cols
+        df = self.df
+        df = df[ col ]
+
+        return df.value_counts()
