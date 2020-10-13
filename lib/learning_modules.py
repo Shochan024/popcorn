@@ -218,7 +218,7 @@ class logistic(Learning,LearnController):
             self.df[col] = pd.to_datetime( self.df[col] ).dt.strftime("%Y-%m-%d")
 
     def learn( self ):
-        model = self.learning_set( model=LogisticRegression() ,\
+        model = self.learning_set( model=LogisticRegression(C=10) ,\
          df=self.df , query=self.query ,x_cols=self.x_cols , y_cols=self.y_cols )
 
         return model

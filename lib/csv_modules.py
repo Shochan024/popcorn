@@ -7,7 +7,7 @@ import pandas as pd
 import category_encoders as ce
 from .tools.file_modules import *
 from abc import ABCMeta , abstractmethod
-__all__ = ["merge","where","categorical","withoutdup","renamecol","replacecol"]
+__all__ = ["merge","where","categorical","withoutdup","renamecol","replacecol","fillna"]
 
 class CSVModule(object,metaclass=ABCMeta):
     @abstractmethod
@@ -43,15 +43,15 @@ class merge(CSVModule):
         columns = json.loads( self.vals["columns"] )
         df_1 = self.df
         df_2 = pd.read_csv( csv_file )
-        df_merged = df_1.merge( df_2 , on=on , how=join_mode )
+        df = df_1.merge( df_2 , on=on , how=join_mode )
         save_path = os.path.dirname( self.path.replace("originals","shaped") )
         merged_csv_name = "merged_{}_{}".format( os.path.basename( self.path ).split(".")[0] , csv_file.split(".")[0].replace("/","_") )
 
         if columns[0] != "all":
-            df_merged = df_merged[columns]
+            df = df[columns]
 
 
-        return { "csv_name" : merged_csv_name , "save_path" : save_path , "dataframe": df_merged}
+        return { "csv_name" : merged_csv_name , "save_path" : save_path , "dataframe": df}
 
 
 class where(CSVModule):
@@ -104,6 +104,22 @@ class replacecol(CSVModule):
         renamed_csv_name = "renamed_{}".format( os.path.basename( self.path ).split(".")[0] )
 
         return { "csv_name": renamed_csv_name , "save_path" : save_path , "dataframe": df }
+
+class fillna(CSVModule):
+    def __init__( self , path , vals , df ):
+        self.path = path
+        self.vals = vals
+        self.df = df
+
+    def dump( self ):
+        df = self.df
+        for col in json.loads( self.vals["columns"] ):
+            df[col] = df[col].fillna( df[col].mean() )
+
+        save_path = os.path.dirname( self.path.replace("originals","shaped") )
+        fillna_csv_name = "fillna_{}".format( os.path.basename( self.path ).split(".")[0] )
+
+        return { "csv_name": fillna_csv_name  , "save_path" : save_path , "dataframe": df }
 
 
 class withoutdup(CSVModule):
