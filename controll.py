@@ -181,6 +181,7 @@ class backborn:
                 exe = eval( "lib.{}".format( aggregate_format ) )( df , vals )
                 aggregate_obj = exe.dump()
                 save_path = os.path.dirname( path ).replace("shaped","statistics")
+                save_path = os.path.dirname( path ).replace("originals","statistics")
                 save_path = "{}/{}/{}_{}.csv".format( save_path \
                 , os.path.basename( path ).split(".")[0], aggregate_format ,\
                  json.loads( vals["agg"] )[1] )
@@ -220,15 +221,19 @@ class backborn:
     def __csv_dump( self , exec , mode=0 ):
         #結合するcsvは必ず同じフォルダに格納する
         for path , dict in exec.items():
+            save_path = ""
+            df = pd.read_csv( path )
             for csv_mode , vals in dict.items():
                 csv_mode = csv_mode.split("_")[0] #連番を除去
-                exe = eval( "lib.{}".format( csv_mode ) )( path , vals )
+                exe = eval( "lib.{}".format( csv_mode ) )( path , vals , df )
                 output_csvinfo_dict = exe.dump()
                 df = output_csvinfo_dict["dataframe"]
-                save_path = output_csvinfo_dict["csv_name"]
-                if df is not None:
-                    self.__mode_change( mode=mode , obj=df.to_csv ,\
-                     save_path=save_path )
+
+                save_path += output_csvinfo_dict["csv_name"]
+            save_file_name = "{}/{}.csv".format( output_csvinfo_dict["save_path"] , save_path )
+            if df is not None:
+                self.__mode_change( mode=mode , obj=df.to_csv ,\
+                 save_path=save_file_name )
 
     """
     Another Local Methods

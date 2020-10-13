@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 from .tools.dict_modules import *
 from abc import ABCMeta , abstractmethod
 
-__all__ = ["pivot"]
+__all__ = ["pivot","describe"]
 
 class Aggregate(object,metaclass=ABCMeta):
     @abstractmethod
@@ -53,3 +53,25 @@ class pivot(Aggregate):
          values=agg[2] , aggfunc="count" )
 
         return pivot
+
+class describe(Aggregate):
+    """
+    DataFrameから集計結果をを出力する
+    --------------------------------
+    path : 集計する元のcsvのpath <string>
+
+    vals : 出力するカラムの情報 <dict>
+    --------------------------------
+    """
+    def __init__( self , df , cols ):
+        self.cols = json.loads( cols["columns"] )
+        self.df = df
+
+    def dump( self ):
+        df = self.df
+        cols = self.cols
+        if cols != "all" and cols !="":
+            df = df[ cols ]
+
+
+        return df.describe()

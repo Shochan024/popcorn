@@ -7,10 +7,10 @@ import pandas as pd
 import category_encoders as ce
 from .tools.file_modules import *
 from abc import ABCMeta , abstractmethod
-__all__ = ["merge","where","describe","categorical","valuecounts","withoutdup"]
+__all__ = ["merge","where","categorical","valuecounts","withoutdup"]
 class CSVModule(object,metaclass=ABCMeta):
     @abstractmethod
-    def __init__( self , path , vals ):
+    def __init__( self , path , vals , df ):
         raise NotImplementedError()
 
     @abstractmethod
@@ -29,9 +29,10 @@ class merge(CSVModule):
         - vals["mode"] : inner_join or left_join
     --------------------------------
     """
-    def __init__( self , path , vals ):
+    def __init__( self , path , vals , df ):
         self.path = path
         self.vals = vals
+        self.df = df
 
 
     def dump( self ):
@@ -44,20 +45,20 @@ class merge(CSVModule):
         df_2 = pd.read_csv( file_path )
         df_merged = df_1.merge( df_2 , on=on , how=join_mode )
         save_path = os.path.dirname( self.path.replace("originals","shaped") )
-        merged_csv_name = "{}/merged_{}_{}.csv".format( save_path ,\
-         os.path.basename( self.path ).split(".")[0] , csv_file.split(".")[0] )
+        merged_csv_name = "merged_{}_{}".format( os.path.basename( self.path ).split(".")[0] , csv_file.split(".")[0] )
 
         if columns != "all":
             df_merged = df_merged[columns]
 
 
-        return { "csv_name" : merged_csv_name , "dataframe": df_merged}
+        return { "csv_name" : merged_csv_name , "save_path" : save_path , "dataframe": df_merged}
 
 
 class where(CSVModule):
-    def __init__( self , path , vals ):
+    def __init__( self , path , vals , df ):
         self.path = path
         self.vals = vals
+        self.df = df
         self.cols = json.loads( self.vals["columns"] )
 
     def dump( self ):
@@ -71,15 +72,15 @@ class where(CSVModule):
             df[col] = pd.to_datetime( df[col] )
 
         save_path = os.path.dirname( self.path.replace("originals","shaped") )
-        driped_csv_name = "{}/driped_{}.csv".format( save_path ,\
-         os.path.basename( self.path ).split(".")[0] )
+        driped_csv_name = "driped_{}".format( os.path.basename( self.path ).split(".")[0] )
 
-        return { "csv_name": driped_csv_name , "dataframe": df.query("{}".format(query)) }
+        return { "csv_name": driped_csv_name , "save_path" : save_path , "dataframe": df.query("{}".format(query)) }
 
 class valuecounts(CSVModule):
-    def __init__( self , path , vals ):
+    def __init__( self , path , vals , df ):
         self.path = path
         self.vals = vals
+        self.df = df
 
     def dump( self ):
         col = self.vals["column"]
@@ -87,15 +88,15 @@ class valuecounts(CSVModule):
         df = df[ col ]
         save_path = os.path.dirname( self.path.replace("originals","statistics") )
         save_path = save_path.replace("shaped","statistics")
-        value_count_csv_name = "{}/value_count_{}.csv".format( save_path ,\
-         os.path.basename( self.path ).split(".")[0] )
+        value_count_csv_name = "value_count_{}".format( os.path.basename( self.path ).split(".")[0] )
 
-        return { "csv_name": value_count_csv_name , "dataframe": df.value_counts() }
+        return { "csv_name": value_count_csv_name , "save_path":save_path , "dataframe": df.value_counts() }
 
 class withoutdup(CSVModule):
-    def __init__( self , path , vals ):
+    def __init__( self , path , vals , df ):
         self.path = path
         self.vals = vals
+        self.df = df
 
     def dump( self ):
         col = self.vals["column"]
@@ -104,36 +105,10 @@ class withoutdup(CSVModule):
 
         save_path = os.path.dirname( self.path.replace("originals","shaped") )
         save_path = save_path.replace("shaped","shaped")
-        value_count_csv_name = "{}/withoutdup_{}.csv".format( save_path ,\
-         os.path.basename( self.path ).split(".")[0] )
+        value_count_csv_name = "withoutdup_{}".format( os.path.basename( self.path ).split(".")[0] )
 
-        return { "csv_name": value_count_csv_name , "dataframe": df }
+        return { "csv_name": value_count_csv_name , "save_path" : save_path , "dataframe": df }
 
-class describe(CSVModule):
-    """
-    DataFrameから集計結果をを出力する
-    --------------------------------
-    path : 集計する元のcsvのpath <string>
-
-    vals : 出力するカラムの情報 <dict>
-    --------------------------------
-    """
-    def __init__( self , path , vals ):
-        self.path = path
-        self.vals = vals
-
-    def dump( self ):
-        df = pd.read_csv( self.path )
-        cols = self.vals["columns"]
-        if cols != "all" and cols !="":
-            df = df[ json.loads( cols ) ]
-
-        save_path = os.path.dirname( self.path.replace("originals","statistics") )
-        save_path = save_path.replace("shaped","statistics")
-        described_csv_name = "{}/describe_{}.csv".format( save_path ,\
-         os.path.basename( self.path ).split(".")[0] )
-
-        return { "csv_name": described_csv_name , "dataframe": df.describe() }
 
 class categorical(CSVModule):
     """
@@ -144,9 +119,10 @@ class categorical(CSVModule):
     vals : 出力するカラムの情報 <dict>
     --------------------------------
     """
-    def __init__( self , path , vals ):
+    def __init__( self , path , vals , df ):
         self.path = path
         self.vals = vals
+        self.df = df
 
     def dump( self ):
         df = pd.read_csv( self.path )
@@ -155,7 +131,6 @@ class categorical(CSVModule):
         df = ce_ohe.fit_transform( df )
 
         save_path = os.path.dirname( self.path.replace("originals","shaped") )
-        replaced_csv_name = "{}/replaced_csv_name_{}.csv".format( save_path ,\
-         os.path.basename( self.path ).split(".")[0] )
+        replaced_csv_name = "replaced_csv_name_{}".format( os.path.basename( self.path ).split(".")[0] )
 
-        return { "csv_name" : replaced_csv_name , "dataframe" : df }
+        return { "csv_name" : replaced_csv_name , "save_path" : save_path , "dataframe" : df }
