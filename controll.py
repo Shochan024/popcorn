@@ -164,10 +164,11 @@ class backborn:
                 learn_format = learn_format.split("_")[0]
                 exe = eval( "lib.{}".format( learn_format ) )( df , vals , path )
                 model = exe.learn()
-                acc = exe.accuracy( model=model )
                 exe.dump( model=model )
+                acc = exe.accuracy( model=model )
                 system( "Learning {} -> N :: {} train accuracy :: {} test accuracy :: {}"\
                 .format( learn_format , acc["N"] , acc["train"] , acc["test"] ) )
+
 
 
     def __aggregate_dump( self , exec , mode=0 ):

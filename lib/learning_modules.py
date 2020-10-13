@@ -241,6 +241,7 @@ class logistic(Learning,LearnController):
         if query != "":
             df = df.query( query )
 
+
         X = df[x_cols]
         Y = df[y_cols]
         X_train , X_test , Y_train , Y_test = train_test_split( X , Y )
@@ -250,7 +251,7 @@ class logistic(Learning,LearnController):
 
         pred = model.predict( X_test )
         pred = round( sum( pred ) / len( pred ) , 3 )
-        system( "1:{},0:{}".format( pred , 1-pred ) )
+        system( " {} 1:{},0:{}".format( str( model ) , pred , 1-pred ) )
 
 
         prob = model.predict_proba( X_test )[:,1]
