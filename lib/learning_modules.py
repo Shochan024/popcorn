@@ -111,8 +111,8 @@ class LearnController:
         ax2.hist( prob , bins=40 , histtype="step" )
         ax2.set_xlim(0,1)
         filename = os.path.dirname( self.filename.replace( "datas" , "graphs" ) )
-        filename = filename + "/calibration_curve{}_{}.png".\
-        format( self.y_cols[0] , "_".join( self.x_cols ) )
+        filename = filename + "/{}_calibration_curve{}_{}.png".\
+        format( str( model ) , self.y_cols[0] , "_".join( self.x_cols ) )
         if os.path.exists( os.path.dirname( filename ) ) is not True:
             message( "mkdir {}".format( os.path.dirname( filename ) ) )
             os.makedirs( os.path.dirname( filename ) )
