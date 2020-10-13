@@ -19,6 +19,7 @@ from sklearn.tree import DecisionTreeClassifier
 from sklearn.linear_model import LogisticRegression
 from sklearn.calibration import calibration_curve
 from sklearn.model_selection import train_test_split
+from sklearn.metrics import confusion_matrix, accuracy_score, precision_score, recall_score, f1_score , roc_curve, auc
 
 
 __all__ = ["decisiontree","logistic"]
@@ -73,6 +74,94 @@ class LearnController:
         model.fit( X_train , Y_train )
 
         return model
+
+    def _plot_calibration( self , df , query , model , x_cols , y_cols ):
+        if query != "":
+            df = df.query( query )
+
+
+        X = df[x_cols]
+        Y = df[y_cols]
+        X_train , X_test , Y_train , Y_test = train_test_split( X , Y )
+
+        N = len( Y_test )
+        bins_num = int( ( ( N / N ** 0.5 ) * 0.5 ) * 2 )
+
+        pred = model.predict( X_test )
+        pred = round( sum( pred ) / len( pred ) , 3 )
+        system( " {} 1:{},0:{}".format( str( model ) , pred , 1-pred ) )
+
+
+        prob = model.predict_proba( X_test )[:,1]
+        prob_true , prob_pred = calibration_curve( y_true=Y_test ,\
+         y_prob=prob , n_bins=bins_num )
+
+
+        probablility = round( np.sum(np.array(Y_test).astype(np.int)) / len(Y_test) , 3 )
+
+        plt.clf()
+        fig = plt.figure()
+        ax1 = plt.subplot(2,1,1)
+        ax1.set_title("FEATURE={},PROB={},TEST SAMPLE NUM={}".format(X.shape[1],probablility,N))
+        ax1.plot( prob_pred , prob_true , marker="s" , label="calibration_curve" )
+        ax1.plot( [0,1],[0,1],linestyle="--",label="ideal" )
+        ax1.legend()
+
+        ax2 = plt.subplot(2,1,2)
+        ax2.hist( prob , bins=40 , histtype="step" )
+        ax2.set_xlim(0,1)
+        filename = os.path.dirname( self.filename.replace( "datas" , "graphs" ) )
+        filename = filename + "/calibration_curve{}_{}.png".\
+        format( self.y_cols[0] , "_".join( self.x_cols ) )
+        if os.path.exists( os.path.dirname( filename ) ) is not True:
+            message( "mkdir {}".format( os.path.dirname( filename ) ) )
+            os.makedirs( os.path.dirname( filename ) )
+
+        message( "saved calibration_curve image as {}".format( filename ) )
+        plt.savefig( filename )
+
+    def _plot_spec( self , df , query , model , x_cols , y_cols ):
+        if query != "":
+            df = df.query( query )
+
+
+        X = df[x_cols]
+        Y = df[y_cols]
+        X_train , X_test , Y_train , Y_test = train_test_split( X , Y )
+
+        N = len( Y_test )
+        bins_num = int( ( ( N / N ** 0.5 ) * 0.5 ) * 2 )
+
+        Y_pred = model.predict( X_test )
+        confusion = confusion_matrix( y_true=Y_test , y_pred=Y_pred )
+        precision = precision_score( y_true=Y_test , y_pred=Y_pred )
+        recall = recall_score( y_true=Y_test , y_pred=Y_pred )
+        f1 = f1_score( y_true=Y_test , y_pred=Y_pred )
+
+        Y_score = model.predict_proba( X_test )[:, 1]
+        fpr, tpr, thresholds = roc_curve( y_true = Y_test , y_score=Y_score )
+
+        plt.clf()
+        plt.plot(fpr, tpr, label='roc curve (area = %0.3f)' % auc(fpr, tpr))
+        plt.plot([0, 1], [0, 1], linestyle='--', label='random')
+        plt.plot([0, 0, 1], [0, 1, 1], linestyle='--', label='ideal')
+        plt.legend()
+        plt.xlabel('false positive rate')
+        plt.ylabel('true positive rate')
+
+        filename = os.path.dirname( self.filename.replace( "datas" , "graphs" ) )
+        filename = filename + "/ROC_curve{}_{}.png".\
+        format( self.y_cols[0] , "_".join( self.x_cols ) )
+
+        message( "saved ROC_curve image as {}".format( filename ) )
+        plt.savefig( filename )
+
+        system( "\n{} Confusion Matrix \n{}".format( str( model ) , confusion ) )
+        system( "{} Precision  {}".format( str( model ) , precision ) )
+        system( "{} Recall  {}".format( str( model ) , recall ) )
+        system( "{} F1  {}".format( str( model ) , f1 ) )
+
+
 
 
     def acc_calc( self , model , df , query , x_cols , y_cols ):
@@ -228,55 +317,14 @@ class logistic(Learning,LearnController):
         report_dict = self.acc_calc( model=model , df=self.df , query=self.query ,\
          x_cols=self.x_cols , y_cols=self.y_cols )
 
-        self.__plot_calibration( df=self.df , query=self.query , model=model ,\
+        self._plot_calibration( df=self.df , query=self.query , model=model ,\
          x_cols=self.x_cols , y_cols=self.y_cols )
+
+        self._plot_spec( df=self.df , query=self.query , model=model , \
+        x_cols=self.x_cols , y_cols=self.y_cols )
 
         return report_dict
 
     def dump( self , model ):
         self.model_save( model=model , filename=self.filename ,\
          modelname="logistic" , x_cols=self.x_cols , y_cols=self.y_cols )
-
-    def __plot_calibration( self , df , query , model , x_cols , y_cols ):
-        if query != "":
-            df = df.query( query )
-
-
-        X = df[x_cols]
-        Y = df[y_cols]
-        X_train , X_test , Y_train , Y_test = train_test_split( X , Y )
-
-        N = len( Y_test )
-        bins_num = int( ( ( N / N ** 0.5 ) * 0.5 ) * 2 )
-
-        pred = model.predict( X_test )
-        pred = round( sum( pred ) / len( pred ) , 3 )
-        system( " {} 1:{},0:{}".format( str( model ) , pred , 1-pred ) )
-
-
-        prob = model.predict_proba( X_test )[:,1]
-        prob_true , prob_pred = calibration_curve( y_true=Y_test ,\
-         y_prob=prob , n_bins=bins_num )
-
-
-        probablility = round( np.sum(np.array(Y_test).astype(np.int)) / len(Y_test) , 3 )
-
-        fig = plt.figure()
-        ax1 = plt.subplot(2,1,1)
-        ax1.set_title("FEATURE={},PROB={},TEST SAMPLE NUM={}".format(X.shape[1],probablility,N))
-        ax1.plot( prob_pred , prob_true , marker="s" , label="calibration_curve" )
-        ax1.plot( [0,1],[0,1],linestyle="--",label="ideal" )
-        ax1.legend()
-
-        ax2 = plt.subplot(2,1,2)
-        ax2.hist( prob , bins=40 , histtype="step" )
-        ax2.set_xlim(0,1)
-        filename = os.path.dirname( self.filename.replace( "datas" , "graphs" ) )
-        filename = filename + "/calibration_curve{}_{}.png".\
-        format( self.y_cols[0] , "_".join( self.x_cols ) )
-        if os.path.exists( os.path.dirname( filename ) ) is not True:
-            message( "mkdir {}".format( os.path.dirname( filename ) ) )
-            os.makedirs( os.path.dirname( filename ) )
-
-        message( "saved calibration_curve image as {}".format( filename ) )
-        plt.savefig( filename )
