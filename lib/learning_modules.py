@@ -150,8 +150,8 @@ class LearnController:
         plt.ylabel('true positive rate')
 
         filename = os.path.dirname( self.filename.replace( "datas" , "graphs" ) )
-        filename = filename + "/ROC_curve{}_{}.png".\
-        format( self.y_cols[0] , "_".join( self.x_cols ) )
+        filename = filename + "/{}_ROC_curve{}_{}.png".\
+        format( str( model ) , self.y_cols[0] , "_".join( self.x_cols ) )
 
         message( "saved ROC_curve image as {}".format( filename ) )
         plt.savefig( filename )
@@ -238,6 +238,12 @@ class decisiontree(Learning,LearnController):
     def accuracy( self , model ):
         report_dict = self.acc_calc( model=model , df=self.df , query=self.query ,\
          x_cols=self.x_cols , y_cols=self.y_cols )
+
+        self._plot_calibration( df=self.df , query=self.query , model=model ,\
+         x_cols=self.x_cols , y_cols=self.y_cols )
+
+        self._plot_spec( df=self.df , query=self.query , model=model , \
+        x_cols=self.x_cols , y_cols=self.y_cols )
 
         return report_dict
 
