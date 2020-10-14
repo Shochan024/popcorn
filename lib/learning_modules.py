@@ -11,6 +11,7 @@ import matplotlib as mpl
 import japanize_matplotlib
 import matplotlib.pyplot as plt
 from PIL import Image
+from sklearn.svm import SVC
 from sklearn.tree import plot_tree
 from .tools.logger import *
 from .tools.file_modules import *
@@ -22,7 +23,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.metrics import confusion_matrix, accuracy_score, precision_score, recall_score, f1_score , roc_curve, auc
 
 
-__all__ = ["decisiontree","logistic"]
+__all__ = ["decisiontree","logistic","svm"]
 
 
 class Learning(object,metaclass=ABCMeta):
@@ -315,6 +316,46 @@ class logistic(Learning,LearnController):
 
     def learn( self ):
         model = self.learning_set( model=LogisticRegression(C=10) ,\
+         df=self.df , query=self.query ,x_cols=self.x_cols , y_cols=self.y_cols )
+
+        return model
+
+
+    def accuracy( self , model ):
+        report_dict = self.acc_calc( model=model , df=self.df , query=self.query ,\
+         x_cols=self.x_cols , y_cols=self.y_cols )
+
+        self._plot_calibration( df=self.df , query=self.query , model=model ,\
+         x_cols=self.x_cols , y_cols=self.y_cols )
+
+        self._plot_spec( df=self.df , query=self.query , model=model , \
+        x_cols=self.x_cols , y_cols=self.y_cols )
+
+        return report_dict
+
+    def dump( self , model ):
+        self.model_save( model=model , filename=self.filename ,\
+         modelname="logistic" , x_cols=self.x_cols , y_cols=self.y_cols )
+
+
+class svm(Learning,LearnController):
+    def __init__( self , df , cols , filename ):
+        super(svm, self).__init__()
+        self.df = df
+        self.filename = filename
+        self.x_cols = json.loads( cols["x"] )
+        self.y_cols = json.loads( cols["y"] )
+        self.query = cols["query"]
+        self.kernel = cols["kernel"]
+        self.save = bool( cols["save"] )
+
+        datetime_columns_arr = datetime_colmuns( df=self.df )
+        for col in datetime_columns_arr:
+            self.df[col] = pd.to_datetime( self.df[col] ).dt.strftime("%Y-%m-%d")
+
+    def learn( self ):
+        model = self.learning_set( model=SVC(probability=True,\
+        kernel=self.kernel,gamma="auto",random_state=None) ,\
          df=self.df , query=self.query ,x_cols=self.x_cols , y_cols=self.y_cols )
 
         return model
