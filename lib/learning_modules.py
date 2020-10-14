@@ -17,13 +17,14 @@ from .tools.logger import *
 from .tools.file_modules import *
 from abc import ABCMeta , abstractmethod
 from sklearn.tree import DecisionTreeClassifier
+from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
 from sklearn.calibration import calibration_curve
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import confusion_matrix, accuracy_score, precision_score, recall_score, f1_score , roc_curve, auc
 
 
-__all__ = ["decisiontree","logistic","svm"]
+__all__ = ["decisiontree","logistic","svm","randomforest"]
 
 
 class Learning(object,metaclass=ABCMeta):
@@ -389,3 +390,46 @@ class svm(Learning,LearnController):
     def dump( self , model ):
         self.model_save( model=model , filename=self.filename ,\
          modelname="logistic" , x_cols=self.x_cols , y_cols=self.y_cols )
+
+
+class randomforest(Learning,LearnController):
+    def __init__( self , df , cols , filename ):
+        super(randomforest, self).__init__()
+        self.df = df
+        self.filename = filename
+        self.x_cols = json.loads( cols["x"] )
+        self.y_cols = json.loads( cols["y"] )
+        self.query = cols["query"]
+        self.save = bool( cols["save"] )
+        self.max_depth = cols["max_depth"]
+
+        if self.max_depth == "None":
+            self.max_depth = None
+        else:
+            self.max_depth = int( self.max_depth )
+
+        datetime_columns_arr = datetime_colmuns( df=self.df )
+        for col in datetime_columns_arr:
+            self.df[col] = pd.to_datetime( self.df[col] ).dt.strftime("%Y-%m-%d")
+
+    def learn( self ):
+        model = self.learning_set( model=RandomForestClassifier(max_depth=self.max_depth) ,\
+         df=self.df , query=self.query ,x_cols=self.x_cols , y_cols=self.y_cols )
+
+        return model
+
+    def accuracy( self , model ):
+        report_dict = self.acc_calc( model=model , df=self.df , query=self.query ,\
+         x_cols=self.x_cols , y_cols=self.y_cols )
+
+        self._plot_calibration( df=self.df , query=self.query , model=model ,\
+         x_cols=self.x_cols , y_cols=self.y_cols )
+
+        self._plot_spec( df=self.df , query=self.query , model=model , \
+        x_cols=self.x_cols , y_cols=self.y_cols )
+
+        return report_dict
+
+    def dump( self , model ):
+        self.model_save( model=model , filename=self.filename ,\
+         modelname="decisiontree" , x_cols=self.x_cols , y_cols=self.y_cols )
