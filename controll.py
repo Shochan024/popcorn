@@ -222,7 +222,7 @@ class backborn:
     def __csv_dump( self , exec , mode=0 ):
         #結合するcsvは必ず同じフォルダに格納する
         for path , dict in exec.items():
-            save_path = ""
+            save_path = os.path.basename( path ).split(".")[0]
             df = pd.read_csv( path )
             for csv_mode , vals in dict.items():
                 csv_mode = csv_mode.split("_")[0] #連番を除去
@@ -230,7 +230,7 @@ class backborn:
                 output_csvinfo_dict = exe.dump()
                 df = output_csvinfo_dict["dataframe"]
 
-                save_path += output_csvinfo_dict["csv_name"]
+                save_path += "_{}".format( csv_mode )
             save_file_name = "{}/{}.csv".format( output_csvinfo_dict["save_path"] , save_path )
             if df is not None:
                 self.__mode_change( mode=mode , obj=df.to_csv ,\

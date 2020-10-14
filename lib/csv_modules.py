@@ -7,7 +7,8 @@ import pandas as pd
 import category_encoders as ce
 from .tools.file_modules import *
 from abc import ABCMeta , abstractmethod
-__all__ = ["merge","where","categorical","withoutdup","renamecol","replacecol","fillna"]
+__all__ = ["merge","where","categorical","withoutdup","renamecol"]
+__all__ += ["replacecol","fillna","crossterm"]
 
 class CSVModule(object,metaclass=ABCMeta):
     @abstractmethod
@@ -75,6 +76,23 @@ class where(CSVModule):
         driped_csv_name = "driped_{}".format( os.path.basename( self.path ).split(".")[0] )
 
         return { "csv_name": driped_csv_name , "save_path" : save_path , "dataframe": df.query("{}".format(query)) }
+
+class crossterm(CSVModule):
+    def __init__( self , path , vals , df ):
+        self.path = path
+        self.vals = vals
+        self.df = df
+
+    def dump( self ):
+        df = self.df
+        col1 = self.vals["col1"]
+        col2 = self.vals["col2"]
+        df["{}*{}".format(col1,col2)] = df[col1] * df[col2]
+
+        save_path = os.path.dirname( self.path.replace("originals","shaped") )
+        crossterm_csv_name = "crossterm_{}".format( os.path.basename( self.path ).split(".")[0] )
+
+        return { "csv_name": crossterm_csv_name , "save_path" : save_path , "dataframe": df }
 
 class renamecol(CSVModule):
     def __init__( self , path , vals , df ):
@@ -157,7 +175,11 @@ class categorical(CSVModule):
     def dump( self ):
         df = self.df
         list_cols = json.loads( self.vals["columns"] )
-        ce_ohe = ce.OrdinalEncoder( cols=list_cols,handle_unknown='impute' )
+
+        if self.vals["mode"] == "onehot":
+            ce_ohe = ce.OneHotEncoder( cols=list_cols,handle_unknown='impute' )
+        else:
+            ce_ohe = ce.OrdinalEncoder( cols=list_cols,handle_unknown='impute' )
         df = ce_ohe.fit_transform( df )
 
         save_path = os.path.dirname( self.path.replace("originals","shaped") )

@@ -142,6 +142,7 @@ class LearnController:
         fpr, tpr, thresholds = roc_curve( y_true = Y_test , y_score=Y_score )
 
         plt.clf()
+        plt.title( str( model ) )
         plt.plot(fpr, tpr, label='roc curve (area = %0.3f)' % auc(fpr, tpr))
         plt.plot([0, 1], [0, 1], linestyle='--', label='random')
         plt.plot([0, 0, 1], [0, 1, 1], linestyle='--', label='ideal')
