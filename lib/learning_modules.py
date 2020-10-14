@@ -151,6 +151,7 @@ class LearnController:
         plt.xlabel('false positive rate')
         plt.ylabel('true positive rate')
 
+
         filename = os.path.dirname( self.filename.replace( "datas" , "graphs" ) )
         filename = filename + "/{}_ROC_curve{}_{}.png".\
         format( str( model ) , self.y_cols[0] , "_".join( self.x_cols ) )
@@ -162,8 +163,6 @@ class LearnController:
         system( "{} Precision  {}".format( str( model ) , precision ) )
         system( "{} Recall  {}".format( str( model ) , recall ) )
         system( "{} F1  {}".format( str( model ) , f1 ) )
-
-
 
 
     def acc_calc( self , model , df , query , x_cols , y_cols ):
@@ -254,6 +253,7 @@ class decisiontree(Learning,LearnController):
          modelname="decisiontree" , x_cols=self.x_cols , y_cols=self.y_cols )
 
 
+
     def __tree_plot( self , model , df , query , x_cols , y_cols ):
         #sns.set(font='Yu Gothic')
         #sns.set( font=["IPAexGothic"], font_scale=10 / 6 )
@@ -287,7 +287,7 @@ class decisiontree(Learning,LearnController):
     def __importance_plot( self , model ):
         sns.set()
         sns.set(font='Yu Gothic')
-        sns.set( font=["IPAexGothic"], font_scale=0.8 )
+        sns.set( font=["IPAexGothic"], font_scale=0.4 )
         plt.cla()
         fig = plt.figure()
         ax = fig.add_subplot()
@@ -307,6 +307,7 @@ class logistic(Learning,LearnController):
         self.filename = filename
         self.x_cols = json.loads( cols["x"] )
         self.y_cols = json.loads( cols["y"] )
+        self.C = float( cols["C"] )
         self.query = cols["query"]
         self.save = bool( cols["save"] )
 
@@ -315,7 +316,7 @@ class logistic(Learning,LearnController):
             self.df[col] = pd.to_datetime( self.df[col] ).dt.strftime("%Y-%m-%d")
 
     def learn( self ):
-        model = self.learning_set( model=LogisticRegression(C=10) ,\
+        model = self.learning_set( model=LogisticRegression(C=self.C) ,\
          df=self.df , query=self.query ,x_cols=self.x_cols , y_cols=self.y_cols )
 
         return model
@@ -331,11 +332,23 @@ class logistic(Learning,LearnController):
         self._plot_spec( df=self.df , query=self.query , model=model , \
         x_cols=self.x_cols , y_cols=self.y_cols )
 
+        self.__coef_plot( model=model , x_cols=self.x_cols )
+
         return report_dict
 
     def dump( self , model ):
         self.model_save( model=model , filename=self.filename ,\
          modelname="logistic" , x_cols=self.x_cols , y_cols=self.y_cols )
+
+    def __coef_plot( self , model , x_cols ):
+        plt.clf()
+        plt.title( "{} coef".format( str( model ) ) )
+        plt.bar( x_cols , model.coef_[0] )
+        filename = os.path.dirname( self.filename.replace( "datas" , "graphs" ) )
+        filename = filename + "/{}_coef.png".format( model )
+        system( "{} coef : {}".format( str( model ) , str( model.coef_ ) ) )
+        message( "saved Coef image as {}".format( filename ) )
+        plt.savefig( filename )
 
 
 class svm(Learning,LearnController):
