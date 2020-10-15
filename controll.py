@@ -79,19 +79,16 @@ class backborn:
         #######################################
         #             データマージ              #
         #######################################
+        execed_array = []
         exec_infos = lib.json2dict( self.setting_path + "csv_controll.json" )
         exec_array = self.__get_exec( exec_infos=exec_infos )
-        for exec in exec_array:
-            self.__csv_dump( exec=exec , mode=self.mode )
+        while len( exec_array ) != len( execed_array ):
+            for exec in exec_array:
+                if list( exec.keys() )[0] not in execed_array:
+                    self.__csv_dump( exec=exec , mode=self.mode )
+                    execed_array += list( exec.keys() )
 
-        #新しく生成されたファイルの情報を取得
-        new_array = self.__get_exec( exec_infos=exec_infos )
-        for exec in exec_array:
-            new_array.remove( exec )
-
-        #実行
-        for exec in new_array:
-            self.__csv_dump( exec=exec , mode=self.mode )
+            exec_array = self.__get_exec( exec_infos=exec_infos )
 
 
     def describe( self ):
@@ -161,6 +158,8 @@ class backborn:
         for path , dict in exec.items():
             df = pd.read_csv( path )
             for learn_format , vals in dict.items():
+                print( "\n" )
+                system( ":::::{}:::::".format( learn_format.split("_")[0].upper() ) )
                 learn_format = learn_format.split("_")[0]
                 exe = eval( "lib.{}".format( learn_format ) )( df , vals , path )
                 model = exe.learn()
