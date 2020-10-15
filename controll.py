@@ -95,19 +95,16 @@ class backborn:
         #######################################
         #              記述統計                #
         #######################################
+        execed_array = []
         exec_infos = lib.json2dict( self.setting_path + "graphs.json" )
         exec_array = self.__get_exec( exec_infos=exec_infos )
-        for exec in exec_array:
-            self.__graph_dump( exec=exec , mode=self.mode )
+        while len( exec_array ) != len( execed_array ):
+            for exec in exec_array:
+                if list( exec.keys() )[0] not in execed_array:
+                    self.__graph_dump( exec=exec , mode=self.mode )
+                    execed_array += list( exec.keys() )
 
-        #新しく生成されたファイルの情報を取得
-        new_array = self.__get_exec( exec_infos=exec_infos )
-        for exec in exec_array:
-            new_array.remove( exec )
-
-        #実行
-        for exec in new_array:
-            self.__graph_dump( exec=exec , mode=self.mode )
+            exec_array = self.__get_exec( exec_infos=exec_infos )
 
 
     def aggregate( self ):

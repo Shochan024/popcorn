@@ -11,6 +11,7 @@ import matplotlib as mpl
 import japanize_matplotlib
 import matplotlib.pyplot as plt
 from PIL import Image
+from scipy.stats import sem
 from sklearn.svm import SVC
 from sklearn.tree import plot_tree
 from .tools.logger import *
@@ -20,7 +21,7 @@ from sklearn.tree import DecisionTreeClassifier
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
 from sklearn.calibration import calibration_curve
-from sklearn.model_selection import train_test_split
+from sklearn.model_selection import train_test_split , cross_val_score , KFold
 from sklearn.metrics import confusion_matrix, accuracy_score, precision_score, recall_score, f1_score , roc_curve, auc
 
 
@@ -77,6 +78,43 @@ class LearnController:
 
         return model
 
+    def acc_calc( self , model , df , query , x_cols , y_cols ):
+        if query != "":
+            df = df.query( query )
+
+        X = df[x_cols]
+        Y = df[y_cols]
+
+        X_train , X_test , Y_train , Y_test = train_test_split( X , Y )
+        Y_test = np.array( Y_test ).T[0]
+        predicted = model.predict( X_test )
+        predicted_train = model.predict( X_train )
+
+        N = len( predicted ) + len( predicted_train )
+
+        train_acc = round( sum( predicted_train ==\
+         np.array(Y_train).T[0] ) / len( predicted_train ) , 3 )
+
+        test_acc = round( sum( predicted == Y_test ) / len( Y_test ) , 3 )
+
+        return { "N" : N , "train" : train_acc , "test" : test_acc }
+
+    def model_save( self , model , filename , modelname , x_cols , y_cols ):
+        filename = os.path.dirname( filename.replace( "datas" , "models" ) )
+        filename = filename.replace("/shaped","")
+        filename = filename.replace("/originals","")
+        filename = filename.replace("/statistics","")
+        filename = filename + "/{}_model_{}_{}.sav".\
+        format( modelname , y_cols[0] , "_".join( x_cols ) )
+
+        if os.path.exists( os.path.dirname( filename ) ) is not True:
+            message( "mkdir {}".format( os.path.dirname( filename ) ) )
+            os.makedirs( os.path.dirname( filename ) )
+
+        pkl.dump( model , open( filename , "wb" ) )
+        message( "{} tree model dumped as {}".format( modelname , filename ) )
+
+
     def _plot_calibration( self , df , query , model , x_cols , y_cols ):
         if query != "":
             df = df.query( query )
@@ -122,6 +160,15 @@ class LearnController:
         message( "saved calibration_curve image as {}".format( filename ) )
         plt.savefig( filename )
 
+
+    def _evaluation_cross_validation( self , model , x , y , k ):
+        cv = KFold( n_splits=k , random_state=0 , shuffle=False )
+        score = cross_val_score( model , x , y , cv=cv )
+
+
+        return "Mean Score: {} (+/-{})".format( np.mean( score ) , sem( score ) )
+
+
     def _plot_spec( self , df , query , model , x_cols , y_cols ):
         if query != "":
             df = df.query( query )
@@ -139,6 +186,8 @@ class LearnController:
         precision = precision_score( y_true=Y_test , y_pred=Y_pred )
         recall = recall_score( y_true=Y_test , y_pred=Y_pred )
         f1 = f1_score( y_true=Y_test , y_pred=Y_pred )
+
+        cross_val_score = self._evaluation_cross_validation( model=model , x=X_train , y=Y_train , k=5 )
 
         Y_score = model.predict_proba( X_test )[:, 1]
         fpr, tpr, thresholds = roc_curve( y_true = Y_test , y_score=Y_score )
@@ -160,47 +209,13 @@ class LearnController:
         message( "saved ROC_curve image as {}".format( filename ) )
         plt.savefig( filename )
 
-        system( "\n{} Confusion Matrix \n{}".format( str( model ) , confusion ) )
+        print("\n")
+        system( "{} Confusion Matrix \n{}".format( str( model ) , confusion ) )
         system( "{} Precision  {}".format( str( model ) , precision ) )
         system( "{} Recall  {}".format( str( model ) , recall ) )
-        system( "{} F1  {}".format( str( model ) , f1 ) )
-
-
-    def acc_calc( self , model , df , query , x_cols , y_cols ):
-        if query != "":
-            df = df.query( query )
-
-        X = df[x_cols]
-        Y = df[y_cols]
-
-        X_train , X_test , Y_train , Y_test = train_test_split( X , Y )
-        Y_test = np.array( Y_test ).T[0]
-        predicted = model.predict( X_test )
-        predicted_train = model.predict( X_train )
-
-        N = len( predicted ) + len( predicted_train )
-
-        train_acc = round( sum( predicted_train ==\
-         np.array(Y_train).T[0] ) / len( predicted_train ) , 3 )
-
-        test_acc = round( sum( predicted == Y_test ) / len( Y_test ) , 3 )
-
-        return { "N" : N , "train" : train_acc , "test" : test_acc }
-
-    def model_save( self , model , filename , modelname , x_cols , y_cols ):
-        filename = os.path.dirname( filename.replace( "datas" , "models" ) )
-        filename = filename.replace("/shaped","")
-        filename = filename.replace("/originals","")
-        filename = filename.replace("/statistics","")
-        filename = filename + "/{}_model_{}_{}.sav".\
-        format( modelname , y_cols[0] , "_".join( x_cols ) )
-
-        if os.path.exists( os.path.dirname( filename ) ) is not True:
-            message( "mkdir {}".format( os.path.dirname( filename ) ) )
-            os.makedirs( os.path.dirname( filename ) )
-
-        pkl.dump( model , open( filename , "wb" ) )
-        message( "{} tree model dumped as {}".format( modelname , filename ) )
+        system( "{} F1 {}".format( str( model ) , f1 ) )
+        system( "{} Cross Val Score {}".format( str( model ) ,\
+         cross_val_score ) )
 
 
 class decisiontree(Learning,LearnController):
