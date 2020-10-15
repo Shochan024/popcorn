@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 from .tools.dict_modules import *
 from abc import ABCMeta , abstractmethod
 
-__all__ = ["pivot","describe"]
+__all__ = ["pivot","describe","valuecounts"]
 
 class Aggregate(object,metaclass=ABCMeta):
     @abstractmethod
