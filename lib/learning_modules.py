@@ -182,15 +182,14 @@ class LearnController:
         bins_num = int( ( ( N / N ** 0.5 ) * 0.5 ) * 2 )
 
         Y_pred = model.predict( X_test )
-        confusion = confusion_matrix( y_true=Y_test , y_pred=Y_pred )
-        precision = precision_score( y_true=Y_test , y_pred=Y_pred )
-        recall = recall_score( y_true=Y_test , y_pred=Y_pred )
-        f1 = f1_score( y_true=Y_test , y_pred=Y_pred )
+        confusion = confusion_matrix( Y_test , Y_pred )
+        precision = precision_score( Y_test , Y_pred )
+        recall = recall_score( Y_test , Y_pred )
+        f1 = f1_score( Y_test , Y_pred )
 
         cross_val_score = self._evaluation_cross_validation( model=model , x=X_train , y=Y_train , k=5 )
 
-        Y_score = model.predict_proba( X_test )[:, 1]
-        fpr, tpr, thresholds = roc_curve( y_true = Y_test , y_score=Y_score )
+        fpr, tpr, thresholds = roc_curve( y_true = Y_test , y_score=Y_pred )
 
         plt.clf()
         plt.title( str( model ) )
