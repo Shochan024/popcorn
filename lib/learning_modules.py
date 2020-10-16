@@ -183,16 +183,17 @@ class LearnController:
 
         Y_pred = model.predict( X_test )
         confusion = confusion_matrix( Y_test , Y_pred )
-        precision = precision_score( Y_test , Y_pred )
-        recall = recall_score( Y_test , Y_pred )
-        f1 = f1_score( Y_test , Y_pred )
+        precision = round( precision_score( Y_test , Y_pred ) , 3 )
+        recall = round( recall_score( Y_test , Y_pred ) , 3 )
+        f1 = round( f1_score( Y_test , Y_pred ) , 3 )
 
         cross_val_score = self._evaluation_cross_validation( model=model , x=X_train , y=Y_train , k=5 )
 
         fpr, tpr, thresholds = roc_curve( y_true = Y_test , y_score=Y_pred )
 
         plt.clf()
-        plt.title( "{} \n {}".format( str( model ) , " : ".join( self.x_cols ) ) )
+        plt.title( "{} \n {} \n precision:{} recall:{} f1:{}".format( str( model ) ,\
+         " : ".join( self.x_cols ) , precision , recall , f1 ) )
         plt.plot(fpr, tpr, label='roc curve (area = %0.3f)' % auc(fpr, tpr))
         plt.plot([0, 1], [0, 1], linestyle='--', label='random')
         plt.plot([0, 0, 1], [0, 1, 1], linestyle='--', label='ideal')
