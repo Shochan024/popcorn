@@ -142,7 +142,7 @@ class LearnController:
         plt.clf()
         fig = plt.figure()
         ax1 = plt.subplot(2,1,1)
-        ax1.set_title("FEATURE={},PROB={},TEST SAMPLE NUM={}".format(X.shape[1],probablility,N))
+        ax1.set_title("FEATURE={},PROB={},TEST SAMPLE NUM={}\n{}".format(X.shape[1],probablility,N," : ".join(self.x_cols)))
         ax1.plot( prob_pred , prob_true , marker="s" , label="calibration_curve" )
         ax1.plot( [0,1],[0,1],linestyle="--",label="ideal" )
         ax1.legend()
@@ -192,7 +192,7 @@ class LearnController:
         fpr, tpr, thresholds = roc_curve( y_true = Y_test , y_score=Y_pred )
 
         plt.clf()
-        plt.title( str( model ) )
+        plt.title( "{} \n {}".format( str( model ) , " : ".join( self.x_cols ) ) )
         plt.plot(fpr, tpr, label='roc curve (area = %0.3f)' % auc(fpr, tpr))
         plt.plot([0, 1], [0, 1], linestyle='--', label='random')
         plt.plot([0, 0, 1], [0, 1, 1], linestyle='--', label='ideal')
