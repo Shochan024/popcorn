@@ -18,6 +18,7 @@ from .tools.logger import *
 from .tools.file_modules import *
 from abc import ABCMeta , abstractmethod
 from sklearn.tree import DecisionTreeClassifier
+from sklearn.preprocessing import StandardScaler
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
 from sklearn.calibration import calibration_curve
@@ -64,7 +65,7 @@ class LearnController:
     def __init__( self ):
         pass
 
-    def learning_set( self , model , df , query , x_cols , y_cols ):
+    def learning_set( self , model , df , query , x_cols , y_cols , std ):
         if query != "":
             df = df.query( query )
 
@@ -72,18 +73,26 @@ class LearnController:
         X = df[x_cols].astype("float64")
         Y = df[y_cols].astype("float64")
 
+        if std:
+            sc = StandardScaler()
+            X = sc.fit_transform( np.array( X ) )
+
         X_train , X_test , Y_train , Y_test = train_test_split( X , Y )
 
         model.fit( X_train , Y_train )
 
         return model
 
-    def acc_calc( self , model , df , query , x_cols , y_cols ):
+    def acc_calc( self , model , df , query , x_cols , y_cols , std ):
         if query != "":
             df = df.query( query )
 
         X = df[x_cols]
         Y = df[y_cols]
+
+        if std:
+            sc = StandardScaler()
+            X = sc.fit_transform( np.array( X ) )
 
         X_train , X_test , Y_train , Y_test = train_test_split( X , Y )
         Y_test = np.array( Y_test ).T[0]
@@ -115,13 +124,17 @@ class LearnController:
         message( "{} tree model dumped as {}".format( modelname , filename ) )
 
 
-    def _plot_calibration( self , df , query , model , x_cols , y_cols ):
+    def _plot_calibration( self , df , query , model , x_cols , y_cols , std ):
         if query != "":
             df = df.query( query )
 
-
         X = df[x_cols]
         Y = df[y_cols]
+
+        if std:
+            sc = StandardScaler()
+            X = sc.fit_transform( np.array( X ) )
+
         X_train , X_test , Y_train , Y_test = train_test_split( X , Y )
 
         N = len( Y_test )
@@ -142,7 +155,8 @@ class LearnController:
         plt.clf()
         fig = plt.figure()
         ax1 = plt.subplot(2,1,1)
-        ax1.set_title("FEATURE={},PROB={},TEST SAMPLE NUM={}\n{}".format(X.shape[1],probablility,N," : ".join(self.x_cols)))
+        ax1.set_title("FEATURE={},PROB={},TEST SAMPLE NUM={}\n{}\n std:{}".format(X.shape[1],probablility,N,\
+        " : ".join(self.x_cols),std))
         ax1.plot( prob_pred , prob_true , marker="s" , label="calibration_curve" )
         ax1.plot( [0,1],[0,1],linestyle="--",label="ideal" )
         ax1.legend()
@@ -151,8 +165,8 @@ class LearnController:
         ax2.hist( prob , bins=40 , histtype="step" )
         ax2.set_xlim(0,1)
         filename = os.path.dirname( self.filename.replace( "datas" , "graphs" ) )
-        filename = filename + "/Calibration/{}_calibration_curve{}_{}.png".\
-        format( str( model ) , self.y_cols[0] , "_".join( self.x_cols ) )
+        filename = filename + "/Calibration/{}_calibration_curve{}_{}_std{}.png".\
+        format( str( model ) , self.y_cols[0] , "_".join( self.x_cols ) , std )
         if os.path.exists( os.path.dirname( filename ) ) is not True:
             message( "mkdir {}".format( os.path.dirname( filename ) ) )
             os.makedirs( os.path.dirname( filename ) )
@@ -169,13 +183,18 @@ class LearnController:
         return "Mean Score: {} (+/-{})".format( np.mean( score ) , sem( score ) )
 
 
-    def _plot_spec( self , df , query , model , x_cols , y_cols ):
+    def _plot_spec( self , df , query , model , x_cols , y_cols , std ):
         if query != "":
             df = df.query( query )
 
 
         X = df[x_cols]
         Y = df[y_cols]
+
+        if std:
+            sc = StandardScaler()
+            X = sc.fit_transform( np.array( X ) )
+
         X_train , X_test , Y_train , Y_test = train_test_split( X , Y )
 
         N = len( Y_test )
@@ -192,8 +211,8 @@ class LearnController:
         fpr, tpr, thresholds = roc_curve( y_true = Y_test , y_score=Y_pred )
 
         plt.clf()
-        plt.title( "{} \n {} \n precision:{} recall:{} f1:{}".format( str( model ) ,\
-         " : ".join( self.x_cols ) , precision , recall , f1 ) )
+        plt.title( "{} \n {} \n precision:{} recall:{} f1:{} std:{}".format( str( model ) ,\
+         " : ".join( self.x_cols ) , precision , recall , f1 , std ) )
         plt.plot(fpr, tpr, label='roc curve (area = %0.3f)' % auc(fpr, tpr))
         plt.plot([0, 1], [0, 1], linestyle='--', label='random')
         plt.plot([0, 0, 1], [0, 1, 1], linestyle='--', label='ideal')
@@ -203,8 +222,8 @@ class LearnController:
 
 
         filename = os.path.dirname( self.filename.replace( "datas" , "graphs" ) )
-        filename = filename + "/ROC/{}_ROC_curve{}_{}.png".\
-        format( str( model ) , self.y_cols[0] , "_".join( self.x_cols ) )
+        filename = filename + "/ROC/{}_ROC_curve{}_{}_std_{}.png".\
+        format( str( model ) , self.y_cols[0] , "_".join( self.x_cols ) , std )
 
         message( "saved ROC_curve image as {}".format( filename ) )
         if os.path.exists( os.path.dirname( filename ) ) is not True:
@@ -232,6 +251,7 @@ class decisiontree(Learning,LearnController):
         self.query = cols["query"]
         self.save = bool( cols["save"] )
         self.max_depth = cols["max_depth"]
+        self.std = cols["std"] != "False"
 
         if self.max_depth == "None":
             self.max_depth = None
@@ -244,12 +264,12 @@ class decisiontree(Learning,LearnController):
 
     def learn( self ):
         model = self.learning_set( model=DecisionTreeClassifier(max_depth=self.max_depth) ,\
-         df=self.df , query=self.query ,x_cols=self.x_cols , y_cols=self.y_cols )
+         df=self.df , query=self.query ,x_cols=self.x_cols , y_cols=self.y_cols , std=self.std )
 
         if self.save is True:
             # Plot Decision Tree
             self.__tree_plot( model=model , df=self.df ,\
-             query=self.query , x_cols=self.x_cols , y_cols=self.y_cols )
+             query=self.query , x_cols=self.x_cols , y_cols=self.y_cols , std=self.std )
 
             # Plot feature importance
             self.__importance_plot( model=model )
@@ -258,13 +278,13 @@ class decisiontree(Learning,LearnController):
 
     def accuracy( self , model ):
         report_dict = self.acc_calc( model=model , df=self.df , query=self.query ,\
-         x_cols=self.x_cols , y_cols=self.y_cols )
+         x_cols=self.x_cols , y_cols=self.y_cols , std=self.std )
 
         self._plot_calibration( df=self.df , query=self.query , model=model ,\
-         x_cols=self.x_cols , y_cols=self.y_cols )
+         x_cols=self.x_cols , y_cols=self.y_cols , std=self.std )
 
         self._plot_spec( df=self.df , query=self.query , model=model , \
-        x_cols=self.x_cols , y_cols=self.y_cols )
+        x_cols=self.x_cols , y_cols=self.y_cols , std=self.std )
 
         return report_dict
 
@@ -274,14 +294,17 @@ class decisiontree(Learning,LearnController):
 
 
 
-    def __tree_plot( self , model , df , query , x_cols , y_cols ):
-        #sns.set(font='Yu Gothic')
-        #sns.set( font=["IPAexGothic"], font_scale=10 / 6 )
+    def __tree_plot( self , model , df , query , x_cols , y_cols , std ):
         if query != "":
             df = df.query( query )
 
         X = df[x_cols]
         Y = df[y_cols]
+
+        if std:
+            sc = StandardScaler()
+            X = sc.fit_transform( np.array( X ) )
+
         X_train , X_test , Y_train , Y_test = train_test_split( X , Y )
 
         mpl.rcParams.update(mpl.rcParamsDefault)
@@ -330,6 +353,7 @@ class logistic(Learning,LearnController):
         self.C = float( cols["C"] )
         self.query = cols["query"]
         self.save = bool( cols["save"] )
+        self.std = cols["std"] != "False"
 
         datetime_columns_arr = datetime_colmuns( df=self.df )
         for col in datetime_columns_arr:
@@ -337,20 +361,20 @@ class logistic(Learning,LearnController):
 
     def learn( self ):
         model = self.learning_set( model=LogisticRegression(C=self.C) ,\
-         df=self.df , query=self.query ,x_cols=self.x_cols , y_cols=self.y_cols )
+         df=self.df , query=self.query ,x_cols=self.x_cols , y_cols=self.y_cols , std=self.std )
 
         return model
 
 
     def accuracy( self , model ):
         report_dict = self.acc_calc( model=model , df=self.df , query=self.query ,\
-         x_cols=self.x_cols , y_cols=self.y_cols )
+         x_cols=self.x_cols , y_cols=self.y_cols , std=self.std )
 
         self._plot_calibration( df=self.df , query=self.query , model=model ,\
-         x_cols=self.x_cols , y_cols=self.y_cols )
+         x_cols=self.x_cols , y_cols=self.y_cols , std=self.std )
 
         self._plot_spec( df=self.df , query=self.query , model=model , \
-        x_cols=self.x_cols , y_cols=self.y_cols )
+        x_cols=self.x_cols , y_cols=self.y_cols , std=self.std )
 
         self.__coef_plot( model=model , x_cols=self.x_cols )
 
@@ -381,6 +405,7 @@ class svm(Learning,LearnController):
         self.query = cols["query"]
         self.kernel = cols["kernel"]
         self.save = bool( cols["save"] )
+        self.std = cols["std"] != "False"
 
         datetime_columns_arr = datetime_colmuns( df=self.df )
         for col in datetime_columns_arr:
@@ -389,20 +414,20 @@ class svm(Learning,LearnController):
     def learn( self ):
         model = self.learning_set( model=SVC(probability=True,\
         kernel=self.kernel,gamma="auto",random_state=None) ,\
-         df=self.df , query=self.query ,x_cols=self.x_cols , y_cols=self.y_cols )
+         df=self.df , query=self.query ,x_cols=self.x_cols , y_cols=self.y_cols , std=self.std )
 
         return model
 
 
     def accuracy( self , model ):
         report_dict = self.acc_calc( model=model , df=self.df , query=self.query ,\
-         x_cols=self.x_cols , y_cols=self.y_cols )
+         x_cols=self.x_cols , y_cols=self.y_cols , std=self.std )
 
         self._plot_calibration( df=self.df , query=self.query , model=model ,\
-         x_cols=self.x_cols , y_cols=self.y_cols )
+         x_cols=self.x_cols , y_cols=self.y_cols , std=self.std )
 
         self._plot_spec( df=self.df , query=self.query , model=model , \
-        x_cols=self.x_cols , y_cols=self.y_cols )
+        x_cols=self.x_cols , y_cols=self.y_cols , std=self.std )
 
         return report_dict
 
@@ -421,6 +446,7 @@ class randomforest(Learning,LearnController):
         self.query = cols["query"]
         self.save = bool( cols["save"] )
         self.max_depth = cols["max_depth"]
+        self.std = cols["std"] != "False"
 
         if self.max_depth == "None":
             self.max_depth = None
@@ -433,19 +459,19 @@ class randomforest(Learning,LearnController):
 
     def learn( self ):
         model = self.learning_set( model=RandomForestClassifier(max_depth=self.max_depth) ,\
-         df=self.df , query=self.query ,x_cols=self.x_cols , y_cols=self.y_cols )
+         df=self.df , query=self.query ,x_cols=self.x_cols , y_cols=self.y_cols , std=self.std )
 
         return model
 
     def accuracy( self , model ):
         report_dict = self.acc_calc( model=model , df=self.df , query=self.query ,\
-         x_cols=self.x_cols , y_cols=self.y_cols )
+         x_cols=self.x_cols , y_cols=self.y_cols , std=self.std )
 
         self._plot_calibration( df=self.df , query=self.query , model=model ,\
-         x_cols=self.x_cols , y_cols=self.y_cols )
+         x_cols=self.x_cols , y_cols=self.y_cols , std=self.std )
 
         self._plot_spec( df=self.df , query=self.query , model=model , \
-        x_cols=self.x_cols , y_cols=self.y_cols )
+        x_cols=self.x_cols , y_cols=self.y_cols , std=self.std )
 
         return report_dict
 
