@@ -209,6 +209,7 @@ class LearnController:
         plt.savefig( filename )
 
         print("\n")
+        system( "{}".format( str( " : ".join( self.x_cols ) ) ) )
         system( "{} Confusion Matrix \n{}".format( str( model ) , confusion ) )
         system( "{} Precision  {}".format( str( model ) , precision ) )
         system( "{} Recall  {}".format( str( model ) , recall ) )

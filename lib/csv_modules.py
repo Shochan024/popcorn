@@ -7,7 +7,7 @@ import pandas as pd
 import category_encoders as ce
 from .tools.file_modules import *
 from abc import ABCMeta , abstractmethod
-__all__ = ["merge","where","categorical","withoutdup","renamecol"]
+__all__ = ["merge","where","categorical","withoutdup","renamecol","logcol"]
 __all__ += ["replacecol","fillna","crossterm"]
 
 class CSVModule(object,metaclass=ABCMeta):
@@ -93,6 +93,25 @@ class crossterm(CSVModule):
         crossterm_csv_name = "crossterm_{}".format( os.path.basename( self.path ).split(".")[0] )
 
         return { "csv_name": crossterm_csv_name , "save_path" : save_path , "dataframe": df }
+
+class logcol(CSVModule):
+    def __init__( self , path , vals , df ):
+        self.path = path
+        self.vals = vals
+        self.df = df
+
+    def dump( self ):
+        df = self.df
+        cols = json.loads( self.vals["columns"] )
+        for col in cols:
+            df = df[ df[col] > 0 ]
+            df["log_{}".format( col )] = np.round( np.log( np.array( df[col] ) ) , 5 )
+
+        save_path = os.path.dirname( self.path.replace("originals","shaped") )
+        log_csv_name = "log_{}".format( os.path.basename( self.path ).split(".")[0] )
+
+        return { "csv_name": log_csv_name , "save_path" : save_path , "dataframe": df }
+
 
 class renamecol(CSVModule):
     def __init__( self , path , vals , df ):
