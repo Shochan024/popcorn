@@ -24,7 +24,7 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.calibration import calibration_curve
 from sklearn.model_selection import train_test_split , cross_val_score , KFold
 from sklearn.metrics import confusion_matrix, accuracy_score, precision_score, recall_score, f1_score , roc_curve, auc
-
+plt.rcParams["figure.dpi"] = 300
 
 __all__ = ["decisiontree","logistic","svm","randomforest"]
 
