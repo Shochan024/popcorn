@@ -73,9 +73,7 @@ class LearnController:
         X = df[x_cols].astype("float64")
         Y = df[y_cols].astype("float64")
 
-        if std:
-            sc = StandardScaler()
-            X = sc.fit_transform( np.array( X ) )
+        X = self._to_norm( cols=std , X=X )
 
         X_train , X_test , Y_train , Y_test = train_test_split( X , Y )
 
@@ -90,9 +88,7 @@ class LearnController:
         X = df[x_cols]
         Y = df[y_cols]
 
-        if std:
-            sc = StandardScaler()
-            X = sc.fit_transform( np.array( X ) )
+        X = self._to_norm( cols=std , X=X )
 
         X_train , X_test , Y_train , Y_test = train_test_split( X , Y )
         Y_test = np.array( Y_test ).T[0]
@@ -131,9 +127,7 @@ class LearnController:
         X = df[x_cols]
         Y = df[y_cols]
 
-        if std:
-            sc = StandardScaler()
-            X = sc.fit_transform( np.array( X ) )
+        X = self._to_norm( cols=std , X=X )
 
         X_train , X_test , Y_train , Y_test = train_test_split( X , Y )
 
@@ -166,7 +160,7 @@ class LearnController:
         ax2.set_xlim(0,1)
         filename = os.path.dirname( self.filename.replace( "datas" , "graphs" ) )
         filename = filename + "/Calibration/{}_calibration_curve{}_{}_std{}.png".\
-        format( str( model ) , self.y_cols[0] , "_".join( self.x_cols ) , std )
+        format( str( model ) , self.y_cols[0] , "_".join( self.x_cols ) , len( std ) == True )
         if os.path.exists( os.path.dirname( filename ) ) is not True:
             message( "mkdir {}".format( os.path.dirname( filename ) ) )
             os.makedirs( os.path.dirname( filename ) )
@@ -191,9 +185,7 @@ class LearnController:
         X = df[x_cols]
         Y = df[y_cols]
 
-        if std:
-            sc = StandardScaler()
-            X = sc.fit_transform( np.array( X ) )
+        X = self._to_norm( cols=std , X=X )
 
         X_train , X_test , Y_train , Y_test = train_test_split( X , Y )
 
@@ -223,7 +215,7 @@ class LearnController:
 
         filename = os.path.dirname( self.filename.replace( "datas" , "graphs" ) )
         filename = filename + "/ROC/{}_ROC_curve{}_{}_std_{}.png".\
-        format( str( model ) , self.y_cols[0] , "_".join( self.x_cols ) , std )
+        format( str( model ) , self.y_cols[0] , "_".join( self.x_cols ) , len( std ) == True )
 
         message( "saved ROC_curve image as {}".format( filename ) )
         if os.path.exists( os.path.dirname( filename ) ) is not True:
@@ -240,6 +232,12 @@ class LearnController:
         system( "{} Cross Val Score {}".format( str( model ) ,\
          cross_val_score ) )
 
+    def _to_norm( self , cols , X ):
+        for col in cols:
+            X[col] = ( X[col] - X[col].mean() ) / X[col].std()
+
+        return X
+
 
 class decisiontree(Learning,LearnController):
     def __init__( self , df , cols , filename ):
@@ -251,7 +249,7 @@ class decisiontree(Learning,LearnController):
         self.query = cols["query"]
         self.save = bool( cols["save"] )
         self.max_depth = cols["max_depth"]
-        self.std = cols["std"] != "False"
+        self.std = json.loads( cols["std"] )
 
         if self.max_depth == "None":
             self.max_depth = None
@@ -301,9 +299,7 @@ class decisiontree(Learning,LearnController):
         X = df[x_cols]
         Y = df[y_cols]
 
-        if std:
-            sc = StandardScaler()
-            X = sc.fit_transform( np.array( X ) )
+        X = self._to_norm( cols=std , X=X )
 
         X_train , X_test , Y_train , Y_test = train_test_split( X , Y )
 
@@ -353,7 +349,7 @@ class logistic(Learning,LearnController):
         self.C = float( cols["C"] )
         self.query = cols["query"]
         self.save = bool( cols["save"] )
-        self.std = cols["std"] != "False"
+        self.std = json.loads( cols["std"] )
 
         datetime_columns_arr = datetime_colmuns( df=self.df )
         for col in datetime_columns_arr:
@@ -405,7 +401,7 @@ class svm(Learning,LearnController):
         self.query = cols["query"]
         self.kernel = cols["kernel"]
         self.save = bool( cols["save"] )
-        self.std = cols["std"] != "False"
+        self.std = json.loads( cols["std"] )
 
         datetime_columns_arr = datetime_colmuns( df=self.df )
         for col in datetime_columns_arr:
@@ -446,7 +442,7 @@ class randomforest(Learning,LearnController):
         self.query = cols["query"]
         self.save = bool( cols["save"] )
         self.max_depth = cols["max_depth"]
-        self.std = cols["std"] != "False"
+        self.std = json.loads( cols["std"] )
 
         if self.max_depth == "None":
             self.max_depth = None
