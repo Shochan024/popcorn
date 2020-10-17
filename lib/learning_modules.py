@@ -455,7 +455,7 @@ class randomforest(Learning,LearnController):
             self.df[col] = pd.to_datetime( self.df[col] ).dt.strftime("%Y-%m-%d")
 
     def learn( self ):
-        model = self.learning_set( model=RandomForestClassifier(max_depth=self.max_depth) ,\
+        model = self.learning_set( model=RandomForestClassifier(criterion=self.criterion,max_depth=self.max_depth) ,\
          df=self.df , query=self.query ,x_cols=self.x_cols , y_cols=self.y_cols , std=self.std )
 
         return model
