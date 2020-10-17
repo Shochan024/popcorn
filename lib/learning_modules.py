@@ -151,7 +151,7 @@ class LearnController:
         plt.rcParams["figure.dpi"] = dpi
         fig = plt.figure()
         ax1 = plt.subplot(2,1,1)
-        ax1.set_title("FEATURE={},PROB={},TEST SAMPLE NUM={}\n std:{}".format(X.shape[1],probablility,N,std))
+        ax1.set_title("FEATURE={},PROB={},TEST SAMPLE NUM={}\n std:{}".format(X.shape[1],probablility,N,len(std)!=0))
         ax1.plot( prob_pred , prob_true , marker="s" , label="calibration_curve" )
         ax1.plot( [0,1],[0,1],linestyle="--",label="ideal" )
         ax1.legend()
