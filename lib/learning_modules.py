@@ -443,6 +443,7 @@ class randomforest(Learning,LearnController):
         self.save = bool( cols["save"] )
         self.max_depth = cols["max_depth"]
         self.std = json.loads( cols["std"] )
+        self.criterion = cols["criterion"]
 
         if self.max_depth == "None":
             self.max_depth = None
