@@ -147,6 +147,7 @@ class LearnController:
         probablility = round( np.sum(np.array(Y_test).astype(np.int)) / len(Y_test) , 3 )
 
         plt.clf()
+        plt.rcParams["figure.dpi"] = 300
         fig = plt.figure()
         ax1 = plt.subplot(2,1,1)
         ax1.set_title("FEATURE={},PROB={},TEST SAMPLE NUM={}\n{}\n std:{}".format(X.shape[1],probablility,N,\
@@ -203,6 +204,7 @@ class LearnController:
         fpr, tpr, thresholds = roc_curve( y_true = Y_test , y_score=Y_pred )
 
         plt.clf()
+        plt.rcParams["figure.dpi"] = 300
         plt.title( "{} \n {} \n precision:{} recall:{} f1:{} std:{}".format( str( model ) ,\
          " : ".join( self.x_cols ) , precision , recall , f1 , std ) )
         plt.plot(fpr, tpr, label='roc curve (area = %0.3f)' % auc(fpr, tpr))
