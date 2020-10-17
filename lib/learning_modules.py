@@ -151,8 +151,7 @@ class LearnController:
         plt.rcParams["figure.dpi"] = dpi
         fig = plt.figure()
         ax1 = plt.subplot(2,1,1)
-        ax1.set_title("FEATURE={},PROB={},TEST SAMPLE NUM={}\n{}\n std:{}".format(X.shape[1],probablility,N,\
-        " : ".join(self.x_cols),std))
+        ax1.set_title("FEATURE={},PROB={},TEST SAMPLE NUM={}\n std:{}".format(X.shape[1],probablility,N,std))
         ax1.plot( prob_pred , prob_true , marker="s" , label="calibration_curve" )
         ax1.plot( [0,1],[0,1],linestyle="--",label="ideal" )
         ax1.legend()
@@ -209,8 +208,8 @@ class LearnController:
 
         plt.clf()
         plt.rcParams["figure.dpi"] = dpi
-        plt.title( "{} \n {} \n precision:{} recall:{} f1:{} std:{}".format( str( model ) ,\
-         " : ".join( self.x_cols ) , precision , recall , f1 , std ) )
+        plt.title( "{} \n precision:{} recall:{} f1:{} std:{}".format( str( model ) , \
+        precision , recall , f1 , std ) )
         plt.plot(fpr, tpr, label='roc curve (area = %0.3f)' % auc(fpr, tpr))
         plt.plot([0, 1], [0, 1], linestyle='--', label='random')
         plt.plot([0, 0, 1], [0, 1, 1], linestyle='--', label='ideal')
