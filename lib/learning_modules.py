@@ -160,7 +160,7 @@ class LearnController:
         ax2.set_xlim(0,1)
         filename = os.path.dirname( self.filename.replace( "datas" , "graphs" ) )
         filename = filename + "/Calibration/{}_calibration_curve{}_{}_std{}.png".\
-        format( str( model ) , self.y_cols[0] , "_".join( self.x_cols ) , len( std ) == True )
+        format( str( model ) , self.y_cols[0] , "_".join( self.x_cols ) , len( std ) != 0 )
         if os.path.exists( os.path.dirname( filename ) ) is not True:
             message( "mkdir {}".format( os.path.dirname( filename ) ) )
             os.makedirs( os.path.dirname( filename ) )
@@ -215,7 +215,7 @@ class LearnController:
 
         filename = os.path.dirname( self.filename.replace( "datas" , "graphs" ) )
         filename = filename + "/ROC/{}_ROC_curve{}_{}_std_{}.png".\
-        format( str( model ) , self.y_cols[0] , "_".join( self.x_cols ) , len( std ) == True )
+        format( str( model ) , self.y_cols[0] , "_".join( self.x_cols ) , len( std ) != 0 )
 
         message( "saved ROC_curve image as {}".format( filename ) )
         if os.path.exists( os.path.dirname( filename ) ) is not True:
