@@ -159,9 +159,12 @@ class LearnController:
         ax2 = plt.subplot(2,1,2)
         ax2.hist( prob , bins=40 , histtype="step" )
         ax2.set_xlim(0,1)
+
+        val_names = "_".join( self.x_cols )
+
         filename = os.path.dirname( self.filename.replace( "datas" , "graphs" ) )
-        filename = filename + "/Calibration/{}_calibration_curve{}_{}_std{}.png".\
-        format( str( model ) , self.y_cols[0] , "_".join( self.x_cols ) , len( std ) != 0 )
+        filename = filename + "/Calibration/{}/{}_calibration_curve{}_std{}.png".\
+        format( val_names , str( model ) , self.y_cols[0] , len( std ) != 0 )
         if os.path.exists( os.path.dirname( filename ) ) is not True:
             message( "mkdir {}".format( os.path.dirname( filename ) ) )
             os.makedirs( os.path.dirname( filename ) )
@@ -214,10 +217,10 @@ class LearnController:
         plt.xlabel('false positive rate')
         plt.ylabel('true positive rate')
 
-
+        val_names = "_".join( self.x_cols )
         filename = os.path.dirname( self.filename.replace( "datas" , "graphs" ) )
-        filename = filename + "/ROC/{}_ROC_curve{}_{}_std_{}.png".\
-        format( str( model ) , self.y_cols[0] , "_".join( self.x_cols ) , len( std ) != 0 )
+        filename = filename + "/ROC/{}/{}_ROC_curve{}_std_{}.png".\
+        format( val_names , str( model ) , self.y_cols[0] , len( std ) != 0 )
 
         message( "saved ROC_curve image as {}".format( filename ) )
         if os.path.exists( os.path.dirname( filename ) ) is not True:
