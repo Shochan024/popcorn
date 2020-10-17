@@ -209,7 +209,7 @@ class LearnController:
         plt.clf()
         plt.rcParams["figure.dpi"] = dpi
         plt.title( "{} \n precision:{} recall:{} f1:{} std:{}".format( str( model ) , \
-        precision , recall , f1 , std ) )
+        precision , recall , f1 , len( std ) !=0 ) )
         plt.plot(fpr, tpr, label='roc curve (area = %0.3f)' % auc(fpr, tpr))
         plt.plot([0, 1], [0, 1], linestyle='--', label='random')
         plt.plot([0, 0, 1], [0, 1, 1], linestyle='--', label='ideal')
