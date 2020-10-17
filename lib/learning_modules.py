@@ -24,7 +24,8 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.calibration import calibration_curve
 from sklearn.model_selection import train_test_split , cross_val_score , KFold
 from sklearn.metrics import confusion_matrix, accuracy_score, precision_score, recall_score, f1_score , roc_curve, auc
-plt.rcParams["figure.dpi"] = 300
+dpi = 200
+plt.rcParams["figure.dpi"] = dpi
 
 __all__ = ["decisiontree","logistic","svm","randomforest"]
 
@@ -147,7 +148,7 @@ class LearnController:
         probablility = round( np.sum(np.array(Y_test).astype(np.int)) / len(Y_test) , 3 )
 
         plt.clf()
-        plt.rcParams["figure.dpi"] = 300
+        plt.rcParams["figure.dpi"] = dpi
         fig = plt.figure()
         ax1 = plt.subplot(2,1,1)
         ax1.set_title("FEATURE={},PROB={},TEST SAMPLE NUM={}\n{}\n std:{}".format(X.shape[1],probablility,N,\
@@ -207,7 +208,7 @@ class LearnController:
         fpr, tpr, thresholds = roc_curve( y_true = Y_test , y_score=Y_pred )
 
         plt.clf()
-        plt.rcParams["figure.dpi"] = 300
+        plt.rcParams["figure.dpi"] = dpi
         plt.title( "{} \n {} \n precision:{} recall:{} f1:{} std:{}".format( str( model ) ,\
          " : ".join( self.x_cols ) , precision , recall , f1 , std ) )
         plt.plot(fpr, tpr, label='roc curve (area = %0.3f)' % auc(fpr, tpr))
