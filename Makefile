@@ -16,4 +16,5 @@ exec:
 	rm -rf ./graphs/originals/*
 	rm -rf ./graphs/shaped/*
 	rm -rf ./graphs/statistics/*
+	rm -rf graphs/models/*
 	python main.py
