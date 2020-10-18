@@ -225,9 +225,10 @@ class backborn:
                 csv_mode = csv_mode.split("_")[0] #連番を除去
                 exe = eval( "lib.{}".format( csv_mode ) )( path , vals , df )
                 output_csvinfo_dict = exe.dump()
-                df = output_csvinfo_dict["dataframe"]
+                if output_csvinfo_dict["csv_name"] is not False:
+                    df = output_csvinfo_dict["dataframe"]
+                    save_path += "_{}".format( csv_mode )
 
-                save_path += "_{}".format( csv_mode )
             save_file_name = "{}/{}.csv".format( output_csvinfo_dict["save_path"] , save_path )
             if df is not None:
                 self.__mode_change( mode=mode , obj=df.to_csv ,\

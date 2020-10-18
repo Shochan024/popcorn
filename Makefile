@@ -9,3 +9,11 @@ init:
 	rm -rf ./plugins/*
 	git clone https://github.com/Shochan024/gausian.git ./plugins/gausian
 	python main.py
+
+exec:
+	rm -rf ./datas/shaped/*
+	rm -rf ./datas/statistics/*
+	rm -rf ./graphs/originals/*
+	rm -rf ./graphs/shaped/*
+	rm -rf ./graphs/statistics/*
+	python main.py

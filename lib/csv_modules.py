@@ -6,9 +6,10 @@ import numpy as np
 import pandas as pd
 import category_encoders as ce
 from .tools.file_modules import *
+from .tools.logger import *
 from abc import ABCMeta , abstractmethod
 __all__ = ["merge","where","categorical","withoutdup","renamecol","logcol"]
-__all__ += ["replacecol","fillna","crossterm"]
+__all__ += ["replacecol","fillna","crossterm","dup","groupbycount"]
 
 class CSVModule(object,metaclass=ABCMeta):
     @abstractmethod
@@ -112,6 +113,20 @@ class logcol(CSVModule):
 
         return { "csv_name": log_csv_name , "save_path" : save_path , "dataframe": df }
 
+class dup(CSVModule):
+    def __init__( self , path , vals , df ):
+        self.path = path
+        self.vals = vals
+        self.df = df
+
+    def dump( self ):
+        df = self.df
+        save_path = os.path.dirname( self.path.replace("originals","shaped") )
+        dup_csv_name = "{}_{}".format( self.vals["filename"] , os.path.basename( self.path ).split(".")[0] )
+        df.to_csv( "{}/{}.csv".format( save_path , dup_csv_name ) )
+        message( "save figure in {}/{}".format( save_path , dup_csv_name ) )
+
+        return { "csv_name": False , "save_path" : save_path , "dataframe": df }
 
 class renamecol(CSVModule):
     def __init__( self , path , vals , df ):
@@ -142,6 +157,23 @@ class replacecol(CSVModule):
 
         return { "csv_name": renamed_csv_name , "save_path" : save_path , "dataframe": df }
 
+class groupbycount(CSVModule):
+    def __init__( self , path , vals , df ):
+        self.path = path
+        self.cols = json.loads( vals["cols"] )
+        self.df = df
+        self.groupby = vals["groupby"]
+
+    def dump( self ):
+        col = self.cols
+        df = self.df
+        df = df[self.cols].groupby( self.groupby ).count()
+
+        save_path = os.path.dirname( self.path.replace("originals","shaped") )
+        groupbycount_csv_name = "groupbycount_{}".format( os.path.basename( self.path ).split(".")[0] )
+
+        return { "csv_name": groupbycount_csv_name , "save_path" : save_path , "dataframe": df }
+
 class fillna(CSVModule):
     def __init__( self , path , vals , df ):
         self.path = path
@@ -151,7 +183,11 @@ class fillna(CSVModule):
     def dump( self ):
         df = self.df
         for col in json.loads( self.vals["columns"] ):
-            df[col] = df[col].fillna( df[col].mean() )
+            if self.vals["how"] == "mean":
+                df[col] = df[col].fillna( df[col].mean() )
+
+            elif self.vals["how"] == "zero":
+                df[col] = df[col].fillna( 0 )
 
         save_path = os.path.dirname( self.path.replace("originals","shaped") )
         fillna_csv_name = "fillna_{}".format( os.path.basename( self.path ).split(".")[0] )
