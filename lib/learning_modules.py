@@ -310,6 +310,7 @@ class decisiontree(Learning,LearnController):
 
         mpl.rcParams.update(mpl.rcParamsDefault)
         plt.rcParams["font.family"] = "IPAexGothic"
+        plt.rcParams["figure.dpi"] = dpi
         fig = plt.figure(figsize=(10,8))
         ax = fig.add_subplot()
         plot_tree( model , filled=True , feature_names=x_cols )
@@ -333,6 +334,7 @@ class decisiontree(Learning,LearnController):
         sns.set(font='Yu Gothic')
         sns.set( font=["IPAexGothic"], font_scale=0.4 )
         plt.cla()
+        plt.rcParams["figure.dpi"] = dpi
         fig = plt.figure()
         ax = fig.add_subplot()
         plt.xlim( 0 , 1 )
@@ -387,10 +389,11 @@ class logistic(Learning,LearnController):
 
     def __coef_plot( self , model , x_cols ):
         plt.clf()
+        plt.rcParams["figure.dpi"] = dpi
         plt.title( "{} coef".format( str( model ) ) )
         plt.bar( x_cols , model.coef_[0] )
         filename = os.path.dirname( self.filename.replace( "datas" , "graphs" ) )
-        filename = filename + "/{}_coef.png".format( model )
+        filename = filename + "/{}_{}_coef.png".format( model , "_".join( self.x_cols ) )
         system( "{} coef : {}".format( str( model ) , str( model.coef_ ) ) )
         message( "saved Coef image as {}".format( filename ) )
         plt.savefig( filename )
