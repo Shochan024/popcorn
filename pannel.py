@@ -1,27 +1,20 @@
 #!-*-coding:utf-8-*-
-from .controll import backborn as bbn
+import os
+import sys
+sys.path.append( os.path.dirname(__file__) + "/../" )
+from controll import backborn as bbn
 
-__all__ = ["set","preprocess","exec"]
+__all__ = ["datapop"]
 
-def set( work_dir , mode=2 ):
-    """
-    初期化
-    """
-    global ini
-    ini = bbn( work_dir=work_dir , mode=mode )
-    ini.set()
+class datapop:
+    def __init__( self , work_dir , exec_array=["csv","aggregate","describe","learn","simuration"] , mode=2 ):
+        self.ini = bbn( work_dir=work_dir , mode=mode )
+        self.exec_array = exec_array
 
-def preprocess():
-    """
-    前処理
-    """
-    ini.csv()
-    ini.aggregate()
-    ini.describe()
 
-def exec():
-    """
-    実行
-    """
-    ini.learn()
-    ini.simuration()
+    def process( self ):
+        """
+        実行
+        """
+        for exec in self.exec_array:
+            eval("self.ini.{}".format(exec))()

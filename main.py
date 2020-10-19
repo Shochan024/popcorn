@@ -1,11 +1,12 @@
 #!-*-coding:utf-8-*-
 import os
-from controll import *
+import sys
+import pannel
+exec_array = []
+for arg in sys.argv[1:]:
+    exec_array.append( arg )
+if len( exec_array ) == 0:
+    exec_array = ["csv","aggregate","describe","learn","simuration"]
 
-ctl = backborn( work_dir = "./" , mode=2 )
-
-ctl.csv()
-ctl.aggregate()
-ctl.describe()
-ctl.learn()
-#ctl.simuration()
+exec = pannel.datapop( work_dir="./" , exec_array=exec_array , mode=2 )
+exec.process()
