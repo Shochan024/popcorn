@@ -17,4 +17,4 @@ exec:
 	rm -rf ./graphs/shaped/*
 	rm -rf ./graphs/statistics/*
 	rm -rf graphs/models/*
-	python main.py
+	python main.py csv aggregate describe learn
