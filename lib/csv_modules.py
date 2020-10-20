@@ -9,7 +9,7 @@ from .tools.file_modules import *
 from .tools.logger import *
 from abc import ABCMeta , abstractmethod
 __all__ = ["merge","where","categorical","withoutdup","renamecol","logcol"]
-__all__ += ["replacecol","fillna","crossterm","dup","groupbycount","timediff"]
+__all__ += ["replacecol","fillna","crossterm","dup","duplicated","groupbycount","timediff"]
 
 class CSVModule(object,metaclass=ABCMeta):
     @abstractmethod
@@ -163,6 +163,24 @@ class replacecol(CSVModule):
         renamed_csv_name = "renamed_{}".format( os.path.basename( self.path ).split(".")[0] )
 
         return { "csv_name": renamed_csv_name , "save_path" : save_path , "dataframe": df }
+
+class duplicated(CSVModule):
+    def __init__( self , path , vals , df ):
+        self.path = path
+        self.cols = json.loads( vals["cols"] )
+        self.df = df
+        self.target_cols = json.loads( vals["target_cols"] )
+        self.keep = vals["keep"]
+
+    def dump( self ):
+        col = self.cols
+        df = self.df
+        df = df[~df[self.target_cols].duplicated(keep=self.keep)][self.cols]
+
+        save_path = os.path.dirname( self.path.replace("originals","shaped") )
+        duplicated_csv_name = "groupby_{}".format( os.path.basename( self.path ).split(".")[0] )
+
+        return { "csv_name": duplicated_csv_name , "save_path" : save_path , "dataframe": df }
 
 class groupbycount(CSVModule):
     def __init__( self , path , vals , df ):
