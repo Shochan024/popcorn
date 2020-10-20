@@ -8,9 +8,10 @@ import japanize_matplotlib
 import matplotlib.pyplot as plt
 from .tools.dict_modules import *
 from abc import ABCMeta , abstractmethod
+from lifelines.plotting import plot_lifetimes
 
 __all__ = ["lineplot","boxplot","barplot","notnull","unique"]
-__all__ += ["pairplot","heatmap","hist"]
+__all__ += ["pairplot","heatmap","hist","lifetimes"]
 
 class Describe(object,metaclass=ABCMeta):
     @abstractmethod
@@ -316,5 +317,30 @@ class hist(Describe):
         X = json.loads( self.cols["x"] )
         X = np.array( self.df[X].dropna() )
         plt.hist( X )
+
+        return fig
+
+class lifetimes(Describe):
+    """
+    DataFrameからヒストグラムを出力する
+    --------------------------------
+    df : データフレーム <DataFrame>
+        - pandasのdataframeオブジェクトを格納
+
+    cols : 出力するカラムの情報 <dict>
+        - cols["border"] : 望ましいサンプル数の割合 <array>
+        - cols["x"] : 割合の歩幅 <string>
+    --------------------------------
+    """
+    def __init__( self , df , cols ):
+        self.df = df
+        self.cols = cols
+
+    def dump( self ):
+        fig , ax = plt.subplots()
+        ax = plot_lifetimes( self.df[ json.loads( self.cols["x"] )[0] ]  ,\
+         self.df[ json.loads( self.cols["y"] )[0] ] )
+        ax.set_xlabel( "day" )
+        ax.set_ylabel( "survive start and stop" )
 
         return fig
