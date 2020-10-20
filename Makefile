@@ -11,6 +11,7 @@ init:
 	python main.py
 
 exec:
+	clear
 	rm -rf ./datas/shaped/*
 	rm -rf ./datas/statistics/*
 	rm -rf ./graphs/originals/*

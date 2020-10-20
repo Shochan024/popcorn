@@ -149,8 +149,13 @@ class replacecol(CSVModule):
 
     def dump( self ):
         df = self.df
-        col = np.where( np.array(df[self.vals["column"]]) == self.vals["before"] , 1,0 )
-        df[self.vals["column"]] = col
+        if self.vals["before"] == "notnull":
+            col = np.array( df[self.vals["column"]].fillna( 0 ) )
+            col = np.where( col != 0 , 1 , 0 )
+        else:
+            col = np.where( np.array(df[self.vals["column"]]) == self.vals["before"] , 1,0 )
+
+        df["{}_replaced".format(self.vals["column"])] = col
 
         save_path = os.path.dirname( self.path.replace("originals","shaped") )
         renamed_csv_name = "renamed_{}".format( os.path.basename( self.path ).split(".")[0] )
