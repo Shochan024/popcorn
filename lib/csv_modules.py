@@ -51,6 +51,8 @@ class merge(CSVModule):
 
         if columns[0] != "all":
             df = df[columns]
+            
+        df = df[~df.duplicated()]
 
 
         return { "csv_name" : merged_csv_name , "save_path" : save_path , "dataframe": df}
