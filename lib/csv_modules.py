@@ -9,7 +9,7 @@ from .tools.file_modules import *
 from .tools.logger import *
 from abc import ABCMeta , abstractmethod
 __all__ = ["merge","where","categorical","withoutdup","renamecol","logcol"]
-__all__ += ["replacecol","fillna","crossterm","dup","groupbycount"]
+__all__ += ["replacecol","fillna","crossterm","dup","groupbycount","timediff"]
 
 class CSVModule(object,metaclass=ABCMeta):
     @abstractmethod
@@ -51,7 +51,7 @@ class merge(CSVModule):
 
         if columns[0] != "all":
             df = df[columns]
-            
+
         df = df[~df.duplicated()]
 
 
@@ -243,6 +243,34 @@ class categorical(CSVModule):
         else:
             ce_ohe = ce.OrdinalEncoder( cols=list_cols,handle_unknown='impute' )
         df = ce_ohe.fit_transform( df )
+
+        save_path = os.path.dirname( self.path.replace("originals","shaped") )
+        replaced_csv_name = "replaced_csv_name_{}".format( os.path.basename( self.path ).split(".")[0] )
+
+        return { "csv_name" : replaced_csv_name , "save_path" : save_path , "dataframe" : df }
+
+class timediff(CSVModule):
+    """
+    DataFrameの特定の列を置換する
+    --------------------------------
+    path : 集計する元のcsvのpath <string>
+
+    vals : 出力するカラムの情報 <dict>
+    --------------------------------
+    """
+    def __init__( self , path , vals , df ):
+        self.path = path
+        self.vals = vals
+        self.df = df
+
+    def dump( self ):
+        df = self.df
+        left_item = pd.to_datetime( df[self.vals["left_time"]] )
+        right_item = pd.to_datetime( df[self.vals["right_time"]] )
+        diff = left_item - right_item
+        diff = np.abs( diff.dt.days )
+        df["{}_{}_diff".format( self.vals["left_time"] , self.vals["right_time"] )] = diff
+
 
         save_path = os.path.dirname( self.path.replace("originals","shaped") )
         replaced_csv_name = "replaced_csv_name_{}".format( os.path.basename( self.path ).split(".")[0] )
