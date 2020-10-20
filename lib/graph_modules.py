@@ -339,7 +339,7 @@ class lifetimes(Describe):
     def dump( self ):
         fig , ax = plt.subplots()
         ax = plot_lifetimes( self.df[ json.loads( self.cols["x"] )[0] ]  ,\
-         self.df[ json.loads( self.cols["y"] )[0] ] )
+         event_observed=self.df[ json.loads( self.cols["y"] )[0] ] )
         ax.set_xlabel( "day" )
         ax.set_ylabel( "survive start and stop" )
 
