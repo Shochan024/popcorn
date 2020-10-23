@@ -16,6 +16,7 @@ from sklearn.svm import SVC
 from sklearn.tree import plot_tree
 from .tools.logger import *
 from .tools.file_modules import *
+from lifelines import KaplanMeierFitter
 from abc import ABCMeta , abstractmethod
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.preprocessing import StandardScaler
@@ -24,10 +25,12 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.calibration import calibration_curve
 from sklearn.model_selection import train_test_split , cross_val_score , KFold
 from sklearn.metrics import confusion_matrix, accuracy_score, precision_score, recall_score, f1_score , roc_curve, auc
+
 dpi = 200
 plt.rcParams["figure.dpi"] = dpi
 
 __all__ = ["decisiontree","logistic","svm","randomforest"]
+__all__ += ["kaplanmeierfitter"]
 
 
 class Learning(object,metaclass=ABCMeta):
@@ -483,3 +486,40 @@ class randomforest(Learning,LearnController):
     def dump( self , model ):
         self.model_save( model=model , filename=self.filename ,\
          modelname="decisiontree" , x_cols=self.x_cols , y_cols=self.y_cols )
+
+
+class kaplanmeierfitter(Learning,LearnController):
+    def __init__( self , df , cols , filename ):
+        super(kaplanmeierfitter, self).__init__()
+        self.df = df
+        self.filename = filename
+        self.x_cols = json.loads( cols["x"] )
+        self.y_cols = json.loads( cols["y"] )
+        self.query = cols["query"]
+        self.save = bool( cols["save"] )
+
+    def learn( self ):
+        model = self.learning_set( model=KaplanMeierFitter() ,\
+         df=self.df , query=self.query ,x_cols=self.x_cols , y_cols=self.y_cols , std=[] )
+
+        return model
+
+    def accuracy( self , model ):
+        report_dict = { "N" : [] , "train" : [] , "test" : [] }
+
+        return report_dict
+
+    def dump( self , model ):
+        self.__lifetime_plot( model=model )
+        self.model_save( model=model , filename=self.filename ,\
+         modelname="kaplanmeierfitter" , x_cols=self.x_cols , y_cols=self.y_cols )
+
+    def __lifetime_plot( self , model ):
+            filename = os.path.dirname( self.filename.replace( "datas" , "graphs" ) )
+            filename = filename + "/{}_{}_{}_lifetime.png".format( "kaplanmeierfitter" , "-".join( self.y_cols ) ,\
+                 "-".join( self.x_cols ) )
+
+            plt.clf()
+            ax = model.plot()
+            ax.set_ylim( 0 , 1 )
+            ax.get_figure().savefig( filename )
