@@ -211,7 +211,7 @@ class backborn:
 
                 save_path = "{}/{}_{}_{}_{}.png".format( save_path ,\
                  os.path.basename( path ).split(".")[0] ,\
-                  graph_format , json.loads( vals["y"] )[0] , "_".join(json.loads( vals["x"] )) )
+                  graph_format , json.loads( vals["y"] )[0] , json.loads( vals["x"] )[0] )
 
                 self.__mode_change( mode=mode , obj=figure_obj.savefig ,\
                  save_path=save_path )
