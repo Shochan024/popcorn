@@ -209,9 +209,9 @@ class backborn:
                     os.makedirs( save_path  )
                     message( "mkdir {}".format( save_path ) , mode=self.mode )
 
-                save_path = "{}/{}_{}_{}.png".format( save_path ,\
+                save_path = "{}/{}_{}_{}_{}.png".format( save_path ,\
                  os.path.basename( path ).split(".")[0] ,\
-                  graph_format , json.loads( vals["y"] )[0] )
+                  graph_format , json.loads( vals["y"] )[0] , "_".join(json.loads( vals["x"] )) )
 
                 self.__mode_change( mode=mode , obj=figure_obj.savefig ,\
                  save_path=save_path )
