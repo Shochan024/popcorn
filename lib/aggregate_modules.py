@@ -66,6 +66,8 @@ class describe(Aggregate):
     def __init__( self , df , cols ):
         self.cols = json.loads( cols["agg"] )
         self.df = df
+        if "query" in cols.keys():
+            self.df = self.df.query( cols["query"] )
 
     def dump( self ):
         df = self.df

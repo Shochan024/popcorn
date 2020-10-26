@@ -174,13 +174,14 @@ class backborn:
         for path , dict in exec.items():
             df = pd.read_csv( path )
             for aggregate_format , vals in dict.items():
+                num = aggregate_format.split("_")[1]
                 aggregate_format = aggregate_format.split("_")[0] #連番を除去
                 exe = eval( "lib.{}".format( aggregate_format ) )( df , vals )
                 aggregate_obj = exe.dump()
                 save_path = os.path.dirname( path )
-                save_path = "{}/{}/{}_{}.csv".format( save_path \
+                save_path = "{}/{}/{}_{}_{}.csv".format( save_path \
                 , os.path.basename( path ).split(".")[0], aggregate_format ,\
-                 json.loads( vals["agg"] )[1] )
+                 json.loads( vals["agg"] )[1] , num )
                 save_path = save_path.replace("shaped","statistics")
                 save_path = save_path.replace("originals","statistics")
 
