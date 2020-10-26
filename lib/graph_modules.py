@@ -315,8 +315,8 @@ class hist(Describe):
         fig = plt.figure()
 
         X = json.loads( self.cols["x"] )
-        X = np.array( self.df[X].dropna() )
         plt.title( "_".join(X) )
+        X = np.array( self.df[X].dropna() )
         plt.hist( X )
 
         return fig
