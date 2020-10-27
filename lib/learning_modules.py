@@ -237,7 +237,7 @@ class LearnController:
         plt.savefig( filename )
 
         plt.clf()
-        sns.heatmap( confusion_df , vmin=0 , vmax=np.max( confusion ) , cmap="Blues" , annot=True )
+        sns.heatmap( confusion_df , vmin=0 , vmax=100 , cmap="Blues" , annot=True )
         message( "saved Confusion image as {}".format( confusion_heatmap ) )
         if os.path.exists( os.path.dirname( confusion_heatmap ) ) is not True:
             os.makedirs( os.path.dirname( confusion_heatmap ) )
