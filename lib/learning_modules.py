@@ -120,6 +120,7 @@ class LearnController:
             message( "mkdir {}".format( os.path.dirname( filename ) ) )
             os.makedirs( os.path.dirname( filename ) )
 
+        print( filename )
         pkl.dump( model , open( filename , "wb" ) )
         message( "{} tree model dumped as {}".format( modelname , filename ) )
 
@@ -453,7 +454,7 @@ class svm(Learning,LearnController):
 
     def dump( self , model ):
         self.model_save( model=model , filename=self.filename ,\
-         modelname="logistic" , x_cols=self.x_cols , y_cols=self.y_cols )
+         modelname="svm" , x_cols=self.x_cols , y_cols=self.y_cols )
 
 
 class randomforest(Learning,LearnController):
@@ -498,7 +499,7 @@ class randomforest(Learning,LearnController):
 
     def dump( self , model ):
         self.model_save( model=model , filename=self.filename ,\
-         modelname="decisiontree" , x_cols=self.x_cols , y_cols=self.y_cols )
+         modelname="randomforest" , x_cols=self.x_cols , y_cols=self.y_cols )
 
 
 class kaplanmeierfitter(Learning,LearnController):
