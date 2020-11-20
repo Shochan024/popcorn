@@ -162,7 +162,7 @@ class backborn:
                 model = exe.learn()
                 exe.dump( model=model )
                 acc = exe.accuracy( model=model )
-                system( "Learning {} -> N :: {} train accuracy :: {} test accuracy :: {}"\
+                system( "Learning {} -> N :: {} train spec :: {} test spec :: {}"\
                 .format( learn_format , acc["N"] , acc["train"] , acc["test"] ) )
 
 
