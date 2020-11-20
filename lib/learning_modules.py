@@ -25,12 +25,16 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.calibration import calibration_curve
 from sklearn.model_selection import train_test_split , cross_val_score , KFold
 from sklearn.metrics import confusion_matrix, accuracy_score, precision_score, recall_score, f1_score , roc_curve, auc
+from sklearn.metrics import mean_squared_error
+from sklearn.gaussian_process import GaussianProcessRegressor
+from sklearn.gaussian_process.kernels import ConstantKernel, RBF, WhiteKernel, ExpSineSquared, Matern, RationalQuadratic
+from sklearn.preprocessing import StandardScaler
 
 dpi = 200
 plt.rcParams["figure.dpi"] = dpi
 
 __all__ = ["decisiontree","logistic","svm","randomforest"]
-__all__ += ["kaplanmeierfitter"]
+__all__ += ["kaplanmeierfitter","gausprocess"]
 
 
 class Learning(object,metaclass=ABCMeta):
@@ -120,7 +124,6 @@ class LearnController:
             message( "mkdir {}".format( os.path.dirname( filename ) ) )
             os.makedirs( os.path.dirname( filename ) )
 
-        print( filename )
         pkl.dump( model , open( filename , "wb" ) )
         message( "{} tree model dumped as {}".format( modelname , filename ) )
 
@@ -537,3 +540,58 @@ class kaplanmeierfitter(Learning,LearnController):
             ax = model.plot()
             ax.set_ylim( 0 , 1 )
             ax.get_figure().savefig( filename )
+
+class gausprocess(Learning,LearnController):
+
+    def __init__( self , df , cols , filename ):
+        super(gausprocess, self).__init__()
+        self.df = df
+        self.filename = filename
+        self.x_cols = json.loads( cols["x"] )
+        self.y_cols = json.loads( cols["y"] )
+        self.std = json.loads( cols["std"] )
+        self.query = cols["query"]
+        self.save = bool( cols["save"] )
+
+    def learn( self ):
+        model = self.learning_set( model=GaussianProcessRegressor(1.0 * RBF() + WhiteKernel()) ,\
+         df=self.df , query=self.query ,x_cols=self.x_cols , y_cols=self.y_cols , std=self.std )
+
+        return model
+
+    def accuracy( self , model ):
+        report_dict = self.acc_calc( model=model , df=self.df , query=self.query ,\
+         x_cols=self.x_cols , y_cols=self.y_cols , std=self.std )
+
+        return report_dict
+
+    def dump( self , model ):
+        self.model_save( model=model , filename=self.filename ,\
+         modelname="gausprocess" , x_cols=self.x_cols , y_cols=self.y_cols )
+
+    def acc_calc( self , model , df , query , x_cols , y_cols , std ):
+        if query != "":
+            df = df.query( query )
+
+        X = df[x_cols]
+        Y = df[y_cols]
+
+        X = self._to_norm( cols=std , X=X )
+
+        X_train , X_test , Y_train , Y_test = train_test_split( X , Y )
+        Y_test = np.array( Y_test ).T[0]
+        predicted = model.predict( X_test )
+        predicted_train = model.predict( X_train )
+
+        N = len( predicted ) + len( predicted_train )
+
+        acc_train = mean_squared_error( np.array(Y_train).T[0] , predicted_train.T[0] )
+        print( round( acc_train , 3 ) )
+        sys.exit()
+
+        train_acc = round( sum( predicted_train ==\
+         np.array(Y_train).T[0] ) / len( predicted_train ) , 3 )
+
+        test_acc = round( sum( predicted == Y_test ) / len( Y_test ) , 3 )
+
+        return { "N" : N , "train" : train_acc , "test" : test_acc }
