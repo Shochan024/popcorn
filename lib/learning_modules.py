@@ -552,9 +552,12 @@ class gausprocess(Learning,LearnController):
         self.std = json.loads( cols["std"] )
         self.query = cols["query"]
         self.save = bool( cols["save"] )
+        self.kernel = cols["kernel"]
 
     def learn( self ):
-        model = self.learning_set( model=GaussianProcessRegressor(1.0 * RBF() + WhiteKernel()) ,\
+        model = self.learning_set( model=\
+        GaussianProcessRegressor(eval(self.kernel["type"])( length_scale=float(self.kernel["length_scale"] ))\
+         + WhiteKernel()) ,\
          df=self.df , query=self.query ,x_cols=self.x_cols , y_cols=self.y_cols , std=self.std )
 
         return model
@@ -585,13 +588,7 @@ class gausprocess(Learning,LearnController):
 
         N = len( predicted ) + len( predicted_train )
 
-        acc_train = mean_squared_error( np.array(Y_train).T[0] , predicted_train.T[0] )
-        print( round( acc_train , 3 ) )
-        sys.exit()
-
-        train_acc = round( sum( predicted_train ==\
-         np.array(Y_train).T[0] ) / len( predicted_train ) , 3 )
-
-        test_acc = round( sum( predicted == Y_test ) / len( Y_test ) , 3 )
+        train_acc = mean_squared_error( np.array(Y_train).T[0] , predicted_train.T[0] )
+        test_acc = mean_squared_error( np.array(Y_test), predicted.T[0] )
 
         return { "N" : N , "train" : train_acc , "test" : test_acc }
