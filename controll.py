@@ -179,9 +179,9 @@ class backborn:
                 exe = eval( "lib.{}".format( aggregate_format ) )( df , vals )
                 aggregate_obj = exe.dump()
                 save_path = os.path.dirname( path )
-                save_path = "{}/{}/{}_{}_{}.csv".format( save_path \
+                save_path = "{}/{}/{}_{}_{}_{}.csv".format( save_path \
                 , os.path.basename( path ).split(".")[0], aggregate_format ,\
-                 json.loads( vals["agg"] )[1] , num )
+                 json.loads( vals["agg"] )[1] , num , vals["query"].replace("'","").replace(" ","") )
                 save_path = save_path.replace("shaped","statistics")
                 save_path = save_path.replace("originals","statistics")
 

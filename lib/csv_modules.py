@@ -10,6 +10,7 @@ from .tools.logger import *
 from abc import ABCMeta , abstractmethod
 __all__ = ["merge","where","categorical","withoutdup","renamecol","logcol"]
 __all__ += ["replacecol","fillna","crossterm","dup","duplicated","groupbycount","timediff"]
+__all__ += ["replaceval"]
 
 class CSVModule(object,metaclass=ABCMeta):
     @abstractmethod
@@ -158,6 +159,24 @@ class replacecol(CSVModule):
             col = np.where( np.array(df[self.vals["column"]]) == self.vals["before"] , 1,0 )
 
         df["{}_replaced".format(self.vals["column"])] = col
+
+        save_path = os.path.dirname( self.path.replace("originals","shaped") )
+        renamed_csv_name = "renamed_{}".format( os.path.basename( self.path ).split(".")[0] )
+
+        return { "csv_name": renamed_csv_name , "save_path" : save_path , "dataframe": df }
+
+class replaceval(CSVModule):
+    def __init__( self , path , vals , df ):
+        self.path = path
+        self.vals = vals
+        self.df = df
+
+    def dump( self ):
+        df = self.df
+        replace_dic = self.vals["replaceinfo"]
+        for key , value in replace_dic.items():
+            df = df.replace( key , value )
+
 
         save_path = os.path.dirname( self.path.replace("originals","shaped") )
         renamed_csv_name = "renamed_{}".format( os.path.basename( self.path ).split(".")[0] )
