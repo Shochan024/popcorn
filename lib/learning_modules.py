@@ -555,9 +555,10 @@ class gausprocess(Learning,LearnController):
         self.kernel = cols["kernel"]
 
     def learn( self ):
+
+        kernel = eval(self.kernel["type"])( length_scale=float(self.kernel["length_scale"] ))
         model = self.learning_set( model=\
-        GaussianProcessRegressor(eval(self.kernel["type"])( length_scale=float(self.kernel["length_scale"] ))\
-         + WhiteKernel()) ,\
+        GaussianProcessRegressor(kernel) ,\
          df=self.df , query=self.query ,x_cols=self.x_cols , y_cols=self.y_cols , std=self.std )
 
         return model
