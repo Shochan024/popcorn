@@ -22,6 +22,7 @@ from sklearn.tree import DecisionTreeClassifier
 from sklearn.preprocessing import StandardScaler
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
+from sksurv.linear_model import CoxPHSurvivalAnalysis
 from sklearn.calibration import calibration_curve
 from sklearn.model_selection import train_test_split , cross_val_score , KFold
 from sklearn.metrics import confusion_matrix, accuracy_score, precision_score, recall_score, f1_score , roc_curve, auc
@@ -34,7 +35,7 @@ dpi = 200
 plt.rcParams["figure.dpi"] = dpi
 
 __all__ = ["decisiontree","logistic","svm","randomforest"]
-__all__ += ["kaplanmeierfitter","gausprocess"]
+__all__ += ["kaplanmeierfitter","gausprocess","coxphsurvival"]
 
 
 class Learning(object,metaclass=ABCMeta):
@@ -171,7 +172,7 @@ class LearnController:
 
         filename = os.path.dirname( self.filename.replace( "datas" , "graphs" ) )
         filename = filename + "/Calibration/{}/{}_calibration_curve{}_std{}.png".\
-        format( val_names , str( model ) , self.y_cols[0] , len( std ) != 0 )
+        format( val_names , str( model ).split("(")[0] , self.y_cols[0] , len( std ) != 0 )
         if os.path.exists( os.path.dirname( filename ) ) is not True:
             message( "mkdir {}".format( os.path.dirname( filename ) ) )
             os.makedirs( os.path.dirname( filename ) )
@@ -229,10 +230,10 @@ class LearnController:
         val_names = "_".join( self.x_cols )
         filename = os.path.dirname( self.filename.replace( "datas" , "graphs" ) )
         confusion_heatmap = filename + "/Confusion/{}/{}_Confusion{}_std_{}.png".\
-        format( val_names , str( model ) , self.y_cols[0] , len( std ) != 0 )
+        format( val_names , str( model ).split("(")[0] , self.y_cols[0] , len( std ) != 0 )
 
         filename = filename + "/ROC/{}/{}_ROC_curve{}_std_{}.png".\
-        format( val_names , str( model ) , self.y_cols[0] , len( std ) != 0 )
+        format( val_names , str( model ).split("(")[0] , self.y_cols[0] , len( std ) != 0 )
 
         message( "saved ROC_curve image as {}".format( filename ) )
         if os.path.exists( os.path.dirname( filename ) ) is not True:
@@ -250,7 +251,7 @@ class LearnController:
 
         print("\n")
         system( "{}".format( str( " : ".join( self.x_cols ) ) ) )
-        system( "{} Confusion Matrix \n{}".format( str( model ) , confusion ) )
+        system( "{} Confusion Matrix \n{}".format( str( model ).split("(")[0] , confusion ) )
         system( "{} Precision  {}".format( str( model ) , precision ) )
         system( "{} Recall  {}".format( str( model ) , recall ) )
         system( "{} F1 {}".format( str( model ) , f1 ) )
@@ -533,8 +534,7 @@ class kaplanmeierfitter(Learning,LearnController):
 
     def __lifetime_plot( self , model ):
             filename = os.path.dirname( self.filename.replace( "datas" , "graphs" ) )
-            filename = filename + "/{}_{}_{}_lifetime.png".format( "kaplanmeierfitter" , "-".join( self.y_cols ) ,\
-                 "-".join( self.x_cols ) )
+            filename = filename + "/{}_{}_lifetime.png".format( "kaplanmeierfitter" , "-".join( self.y_cols ) )
 
             plt.clf()
             ax = model.plot()
@@ -572,6 +572,57 @@ class gausprocess(Learning,LearnController):
     def dump( self , model ):
         self.model_save( model=model , filename=self.filename ,\
          modelname="gausprocess" , x_cols=self.x_cols , y_cols=self.y_cols )
+
+    def acc_calc( self , model , df , query , x_cols , y_cols , std ):
+        if query != "":
+            df = df.query( query )
+
+        X = df[x_cols]
+        Y = df[y_cols]
+
+        X = self._to_norm( cols=std , X=X )
+
+        X_train , X_test , Y_train , Y_test = train_test_split( X , Y )
+        Y_test = np.array( Y_test ).T[0]
+        predicted = model.predict( X_test )
+        predicted_train = model.predict( X_train )
+
+        N = len( predicted ) + len( predicted_train )
+
+        train_acc = mean_squared_error( np.array(Y_train).T[0] , predicted_train.T[0] )
+        test_acc = mean_squared_error( np.array(Y_test), predicted.T[0] )
+
+        return { "N" : N , "train" : train_acc , "test" : test_acc }
+
+
+class coxphsurvival(Learning,LearnController):
+
+    def __init__( self , df , cols , filename ):
+        super(coxphsurvival, self).__init__()
+        self.df = df
+        self.filename = filename
+        self.x_cols = json.loads( cols["x"] )
+        self.y_cols = json.loads( cols["y"] )
+        self.std = json.loads( cols["std"] )
+        self.query = cols["query"]
+        self.save = bool( cols["save"] )
+
+    def learn( self ):
+
+        model = self.learning_set( model=CoxPHSurvivalAnalysis(),\
+         df=self.df , query=self.query ,x_cols=self.x_cols , y_cols=self.y_cols , std=self.std )
+
+        return model
+
+    def accuracy( self , model ):
+        report_dict = self.acc_calc( model=model , df=self.df , query=self.query ,\
+         x_cols=self.x_cols , y_cols=self.y_cols , std=self.std )
+
+        return report_dict
+
+    def dump( self , model ):
+        self.model_save( model=model , filename=self.filename ,\
+         modelname="coxphsurvival" , x_cols=self.x_cols , y_cols=self.y_cols )
 
     def acc_calc( self , model , df , query , x_cols , y_cols , std ):
         if query != "":
