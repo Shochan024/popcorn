@@ -11,7 +11,7 @@ from abc import ABCMeta , abstractmethod
 from lifelines.plotting import plot_lifetimes
 
 __all__ = ["lineplot","boxplot","barplot","notnull","unique"]
-__all__ += ["pairplot","heatmap","hist","lifetimes"]
+__all__ += ["pairplot","heatmap","hist","lifetimes","stackedbar"]
 
 class Describe(object,metaclass=ABCMeta):
     @abstractmethod
@@ -320,6 +320,41 @@ class hist(Describe):
         plt.hist( X )
 
         return fig
+
+
+class stackedbar(Describe):
+    """
+    DataFrameからヒストグラムを出力する
+    --------------------------------
+    df : データフレーム <DataFrame>
+        - pandasのdataframeオブジェクトを格納
+
+    cols : 出力するカラムの情報 <dict>
+        - cols["border"] : 望ましいサンプル数の割合 <array>
+        - cols["x"] : 割合の歩幅 <string>
+    --------------------------------
+    """
+    def __init__( self , df , cols ):
+        self.df = df
+        self.cols = cols
+
+    def dump( self ):
+        fig, axes = plt.subplots(nrows = len(self.cols), ncols = 2, figsize = (18, 20))
+        categories = json.loads( self.cols["x"] )
+        y = self.df[json.loads( self.cols["y"] )[0]]
+
+        for c in categories:
+            freqs = pd.crosstab(self.df[c],y)
+            freqs.plot(ax = axes[categories.index(c), 0], kind = 'bar', stacked = True)
+            axes[categories.index(c)][0].set_xticklabels(freqs.index, rotation=45, size=12)
+            props = freqs.div(freqs.sum(1).astype(float), axis = 0)
+            props.plot(ax = axes[categories.index(c), 1], kind = 'bar', stacked = True)
+            axes[categories.index(c)][1].set_xticklabels(props.index, rotation = 45, size = 12)
+
+            fig.tight_layout()
+
+        return fig
+
 
 class lifetimes(Describe):
     """
