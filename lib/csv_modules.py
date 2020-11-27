@@ -12,6 +12,7 @@ __all__ = ["merge","where","categorical","withoutdup","renamecol","logcol"]
 __all__ += ["replacecol","fillna","crossterm","dup","duplicated","groupbycount","timediff"]
 __all__ += ["replaceval"]
 
+
 class CSVModule(object,metaclass=ABCMeta):
     @abstractmethod
     def __init__( self , path , vals , df ):
@@ -37,6 +38,7 @@ class merge(CSVModule):
         self.path = path
         self.vals = vals
         self.df = df
+        self.filename = vals["filename"]
 
 
     def dump( self ):
@@ -48,7 +50,6 @@ class merge(CSVModule):
         df_2 = pd.read_csv( csv_file )
         df = df_1.merge( df_2 , on=on , how=join_mode )
         save_path = os.path.dirname( self.path.replace("originals","shaped") )
-        merged_csv_name = "merged_{}_{}".format( os.path.basename( self.path ).split(".")[0] , csv_file.split(".")[0].replace("/","_") )
 
         if columns[0] != "all":
             df = df[columns]
@@ -56,7 +57,7 @@ class merge(CSVModule):
         df = df[~df.duplicated()]
 
 
-        return { "csv_name" : merged_csv_name , "save_path" : save_path , "dataframe": df}
+        return { "csv_name" : self.filename , "save_path" : save_path , "dataframe": df}
 
 
 class where(CSVModule):
@@ -65,6 +66,7 @@ class where(CSVModule):
         self.vals = vals
         self.df = df
         self.cols = json.loads( self.vals["columns"] )
+        self.filename = vals["filename"]
 
     def dump( self ):
         query = self.vals["query"]
@@ -77,15 +79,15 @@ class where(CSVModule):
             df[col] = pd.to_datetime( df[col] )
 
         save_path = os.path.dirname( self.path.replace("originals","shaped") )
-        driped_csv_name = "driped_{}".format( os.path.basename( self.path ).split(".")[0] )
 
-        return { "csv_name": driped_csv_name , "save_path" : save_path , "dataframe": df.query("{}".format(query)) }
+        return { "csv_name": self.filename , "save_path" : save_path , "dataframe": df.query("{}".format(query)) }
 
 class crossterm(CSVModule):
     def __init__( self , path , vals , df ):
         self.path = path
         self.vals = vals
         self.df = df
+        self.filename = vals["filename"]
 
     def dump( self ):
         df = self.df
@@ -96,13 +98,14 @@ class crossterm(CSVModule):
         save_path = os.path.dirname( self.path.replace("originals","shaped") )
         crossterm_csv_name = "crossterm_{}".format( os.path.basename( self.path ).split(".")[0] )
 
-        return { "csv_name": crossterm_csv_name , "save_path" : save_path , "dataframe": df }
+        return { "csv_name": self.filename , "save_path" : save_path , "dataframe": df }
 
 class logcol(CSVModule):
     def __init__( self , path , vals , df ):
         self.path = path
         self.vals = vals
         self.df = df
+        self.filename = vals["filename"]
 
     def dump( self ):
         df = self.df
@@ -114,13 +117,14 @@ class logcol(CSVModule):
         save_path = os.path.dirname( self.path.replace("originals","shaped") )
         log_csv_name = "log_{}".format( os.path.basename( self.path ).split(".")[0] )
 
-        return { "csv_name": log_csv_name , "save_path" : save_path , "dataframe": df }
+        return { "csv_name": self.filename , "save_path" : save_path , "dataframe": df }
 
 class dup(CSVModule):
     def __init__( self , path , vals , df ):
         self.path = path
         self.vals = vals
         self.df = df
+        self.filename = vals["filename"]
 
     def dump( self ):
         df = self.df
@@ -136,19 +140,20 @@ class renamecol(CSVModule):
         self.path = path
         self.vals = vals
         self.df = df
+        self.filename = vals["filename"]
 
     def dump( self ):
         df = self.df.rename( columns={ self.vals["before"] : self.vals["after"] } )
         save_path = os.path.dirname( self.path.replace("originals","shaped") )
-        renamed_csv_name = "renamed_{}".format( os.path.basename( self.path ).split(".")[0] )
 
-        return { "csv_name": renamed_csv_name , "save_path" : save_path , "dataframe": df }
+        return { "csv_name": self.filename , "save_path" : save_path , "dataframe": df }
 
 class replacecol(CSVModule):
     def __init__( self , path , vals , df ):
         self.path = path
         self.vals = vals
         self.df = df
+        self.filename = vals["filename"]
 
     def dump( self ):
         df = self.df
@@ -161,15 +166,15 @@ class replacecol(CSVModule):
         df["{}_replaced".format(self.vals["column"])] = col
 
         save_path = os.path.dirname( self.path.replace("originals","shaped") )
-        renamed_csv_name = "renamed_{}".format( os.path.basename( self.path ).split(".")[0] )
 
-        return { "csv_name": renamed_csv_name , "save_path" : save_path , "dataframe": df }
+        return { "csv_name": self.filename , "save_path" : save_path , "dataframe": df }
 
 class replaceval(CSVModule):
     def __init__( self , path , vals , df ):
         self.path = path
         self.vals = vals
         self.df = df
+        self.filename = vals["filename"]
 
     def dump( self ):
         df = self.df
@@ -179,9 +184,8 @@ class replaceval(CSVModule):
 
 
         save_path = os.path.dirname( self.path.replace("originals","shaped") )
-        renamed_csv_name = "renamed_{}".format( os.path.basename( self.path ).split(".")[0] )
 
-        return { "csv_name": renamed_csv_name , "save_path" : save_path , "dataframe": df }
+        return { "csv_name": self.filename , "save_path" : save_path , "dataframe": df }
 
 class duplicated(CSVModule):
     def __init__( self , path , vals , df ):
@@ -190,6 +194,7 @@ class duplicated(CSVModule):
         self.df = df
         self.target_cols = json.loads( vals["target_cols"] )
         self.keep = vals["keep"]
+        self.filename = vals["filename"]
 
     def dump( self ):
         col = self.cols
@@ -197,9 +202,8 @@ class duplicated(CSVModule):
         df = df[~df[self.target_cols].duplicated(keep=self.keep)][self.cols]
 
         save_path = os.path.dirname( self.path.replace("originals","shaped") )
-        duplicated_csv_name = "groupby_{}".format( os.path.basename( self.path ).split(".")[0] )
 
-        return { "csv_name": duplicated_csv_name , "save_path" : save_path , "dataframe": df }
+        return { "csv_name": self.filename , "save_path" : save_path , "dataframe": df }
 
 class groupbycount(CSVModule):
     def __init__( self , path , vals , df ):
@@ -207,6 +211,7 @@ class groupbycount(CSVModule):
         self.cols = json.loads( vals["cols"] )
         self.df = df
         self.groupby = vals["groupby"]
+        self.filename = vals["filename"]
 
     def dump( self ):
         col = self.cols
@@ -214,15 +219,15 @@ class groupbycount(CSVModule):
         df = df[self.cols].groupby( self.groupby ).count()
 
         save_path = os.path.dirname( self.path.replace("originals","shaped") )
-        groupbycount_csv_name = "groupbycount_{}".format( os.path.basename( self.path ).split(".")[0] )
 
-        return { "csv_name": groupbycount_csv_name , "save_path" : save_path , "dataframe": df }
+        return { "csv_name": self.filename , "save_path" : save_path , "dataframe": df }
 
 class fillna(CSVModule):
     def __init__( self , path , vals , df ):
         self.path = path
         self.vals = vals
         self.df = df
+        self.filename = vals["filename"]
 
     def dump( self ):
         df = self.df
@@ -234,9 +239,8 @@ class fillna(CSVModule):
                 df[col] = df[col].fillna( 0 )
 
         save_path = os.path.dirname( self.path.replace("originals","shaped") )
-        fillna_csv_name = "fillna_{}".format( os.path.basename( self.path ).split(".")[0] )
 
-        return { "csv_name": fillna_csv_name  , "save_path" : save_path , "dataframe": df }
+        return { "csv_name": self.filename  , "save_path" : save_path , "dataframe": df }
 
 
 class withoutdup(CSVModule):
@@ -244,6 +248,7 @@ class withoutdup(CSVModule):
         self.path = path
         self.vals = vals
         self.df = df
+        self.filename = vals["filename"]
 
     def dump( self ):
         col = self.vals["column"]
@@ -252,9 +257,8 @@ class withoutdup(CSVModule):
 
         save_path = os.path.dirname( self.path.replace("originals","shaped") )
         save_path = save_path.replace("shaped","shaped")
-        value_count_csv_name = "withoutdup_{}".format( os.path.basename( self.path ).split(".")[0] )
 
-        return { "csv_name": value_count_csv_name , "save_path" : save_path , "dataframe": df }
+        return { "csv_name": self.filename , "save_path" : save_path , "dataframe": df }
 
 
 class categorical(CSVModule):
@@ -270,6 +274,7 @@ class categorical(CSVModule):
         self.path = path
         self.vals = vals
         self.df = df
+        self.filename = vals["filename"]
 
     def dump( self ):
         df = self.df
@@ -282,9 +287,8 @@ class categorical(CSVModule):
         df = ce_ohe.fit_transform( df )
 
         save_path = os.path.dirname( self.path.replace("originals","shaped") )
-        replaced_csv_name = "replaced_csv_name_{}".format( os.path.basename( self.path ).split(".")[0] )
 
-        return { "csv_name" : replaced_csv_name , "save_path" : save_path , "dataframe" : df }
+        return { "csv_name" : self.filename , "save_path" : save_path , "dataframe" : df }
 
 class timediff(CSVModule):
     """
@@ -299,6 +303,7 @@ class timediff(CSVModule):
         self.path = path
         self.vals = vals
         self.df = df
+        self.filename = vals["filename"]
 
     def dump( self ):
         df = self.df
@@ -310,6 +315,5 @@ class timediff(CSVModule):
 
 
         save_path = os.path.dirname( self.path.replace("originals","shaped") )
-        replaced_csv_name = "replaced_csv_name_{}".format( os.path.basename( self.path ).split(".")[0] )
 
-        return { "csv_name" : replaced_csv_name , "save_path" : save_path , "dataframe" : df }
+        return { "csv_name" : self.filename , "save_path" : save_path , "dataframe" : df }

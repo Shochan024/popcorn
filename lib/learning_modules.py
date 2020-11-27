@@ -145,7 +145,7 @@ class LearnController:
 
         pred = model.predict( X_test )
         pred = round( sum( pred ) / len( pred ) , 3 )
-        system( " {} 1:{},0:{}".format( str( model ) , pred , 1-pred ) )
+        system( " {} 1:{},0:{}".format( str( model.__class__.__name__ ) , pred , 1-pred ) )
 
 
         prob = model.predict_proba( X_test )[:,1]
@@ -172,7 +172,7 @@ class LearnController:
 
         filename = os.path.dirname( self.filename.replace( "datas" , "graphs" ) )
         filename = filename + "/Calibration/{}/{}_calibration_curve{}_std{}.png".\
-        format( val_names , str( model ).split("(")[0] , self.y_cols[0] , len( std ) != 0 )
+        format( val_names , str( model.__class__.__name__ ) , self.y_cols[0] , len( std ) != 0 )
         if os.path.exists( os.path.dirname( filename ) ) is not True:
             message( "mkdir {}".format( os.path.dirname( filename ) ) )
             os.makedirs( os.path.dirname( filename ) )
@@ -218,7 +218,7 @@ class LearnController:
 
         plt.clf()
         plt.rcParams["figure.dpi"] = dpi
-        plt.title( "{} \n precision:{} recall:{} f1:{} std:{}".format( str( model ) , \
+        plt.title( "{} \n precision:{} recall:{} f1:{} std:{}".format( str( model.__class__.__name__ ) , \
         precision , recall , f1 , len( std ) !=0 ) )
         plt.plot(fpr, tpr, label='roc curve (area = %0.3f)' % auc(fpr, tpr))
         plt.plot([0, 1], [0, 1], linestyle='--', label='random')
@@ -230,10 +230,10 @@ class LearnController:
         val_names = "_".join( self.x_cols )
         filename = os.path.dirname( self.filename.replace( "datas" , "graphs" ) )
         confusion_heatmap = filename + "/Confusion/{}/{}_Confusion{}_std_{}.png".\
-        format( val_names , str( model ).split("(")[0] , self.y_cols[0] , len( std ) != 0 )
+        format( val_names , str( model.__class__.__name__ ) , self.y_cols[0] , len( std ) != 0 )
 
         filename = filename + "/ROC/{}/{}_ROC_curve{}_std_{}.png".\
-        format( val_names , str( model ).split("(")[0] , self.y_cols[0] , len( std ) != 0 )
+        format( val_names , str( model.__class__.__name__ ) , self.y_cols[0] , len( std ) != 0 )
 
         message( "saved ROC_curve image as {}".format( filename ) )
         if os.path.exists( os.path.dirname( filename ) ) is not True:
@@ -251,11 +251,11 @@ class LearnController:
 
         print("\n")
         system( "{}".format( str( " : ".join( self.x_cols ) ) ) )
-        system( "{} Confusion Matrix \n{}".format( str( model ).split("(")[0] , confusion ) )
-        system( "{} Precision  {}".format( str( model ) , precision ) )
-        system( "{} Recall  {}".format( str( model ) , recall ) )
-        system( "{} F1 {}".format( str( model ) , f1 ) )
-        system( "{} Cross Val Score {}".format( str( model ) ,\
+        system( "{} Confusion Matrix \n{}".format( str( model.__class__.__name__ ) , confusion ) )
+        system( "{} Precision  {}".format( str( model.__class__.__name__ ) , precision ) )
+        system( "{} Recall  {}".format( str( model.__class__.__name__ ) , recall ) )
+        system( "{} F1 {}".format( str( model.__class__.__name__ ) , f1 ) )
+        system( "{} Cross Val Score {}".format( str( model.__class__.__name__ ) ,\
          cross_val_score ) )
 
     def _to_norm( self , cols , X ):
@@ -414,8 +414,8 @@ class logistic(Learning,LearnController):
         plt.title( "{} coef".format( str( model ) ) )
         plt.bar( x_cols , model.coef_[0] )
         filename = os.path.dirname( self.filename.replace( "datas" , "graphs" ) )
-        filename = filename + "/{}_{}_coef.png".format( model , "_".join( self.x_cols ) )
-        system( "{} coef : {}".format( str( model ) , str( model.coef_ ) ) )
+        filename = filename + "/{}_{}_coef.png".format( str( model.__class__.__name__ ) , "_".join( self.x_cols ) )
+        system( "{} coef : {}".format( str( model.__class__.__name__ ) , str( model.coef_ ) ) )
         message( "saved Coef image as {}".format( filename ) )
         plt.savefig( filename )
 
