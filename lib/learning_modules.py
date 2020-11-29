@@ -165,8 +165,9 @@ class LearnController:
         ax1.legend()
 
         ax2 = plt.subplot(2,1,2)
-        ax2.hist( prob , bins=40 , histtype="step" )
-        ax2.set_xlim(0,1)
+        ax2.hist( prob , weights=np.zeros_like(prob) + 1. / prob.size )
+        ax2.set_xlim( 0 , 1 )
+        ax2.set_ylim( 0 , 1 )
 
         val_names = "_".join( self.x_cols )
 

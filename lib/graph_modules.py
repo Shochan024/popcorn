@@ -11,7 +11,7 @@ from abc import ABCMeta , abstractmethod
 from lifelines.plotting import plot_lifetimes
 
 __all__ = ["lineplot","boxplot","barplot","notnull","unique"]
-__all__ += ["pairplot","heatmap","hist","lifetimes","stackedbar"]
+__all__ += ["pairplot","heatmap","hist","lifetimes","stackedbar","valrate"]
 
 class Describe(object,metaclass=ABCMeta):
     @abstractmethod
@@ -344,12 +344,45 @@ class stackedbar(Describe):
         y = self.df[json.loads( self.cols["y"] )[0]]
 
         for c in categories:
-            freqs = pd.crosstab(self.df[c],y)
-            freqs.plot(ax = axes[categories.index(c), 0], kind = 'bar', stacked = True)
-            axes[categories.index(c)][0].set_xticklabels(freqs.index, rotation=45, size=12)
-            props = freqs.div(freqs.sum(1).astype(float), axis = 0)
-            props.plot(ax = axes[categories.index(c), 1], kind = 'bar', stacked = True)
-            axes[categories.index(c)][1].set_xticklabels(props.index, rotation = 45, size = 12)
+            freqs = pd.crosstab( self.df[c] , y )
+            freqs.plot( ax = axes[ categories.index(c) , 0 ], kind = 'bar', stacked = True )
+            axes[ categories.index(c) ][0].set_xticklabels( freqs.index , rotation=45 , size=12 )
+            props = freqs.div( freqs.sum(1).astype(float) , axis = 0 )
+            props.plot( ax = axes[ categories.index(c) , 1 ], kind = 'bar', stacked = True )
+            axes[ categories.index(c) ][1].set_xticklabels( props.index , rotation = 45 , size = 12 )
+
+            fig.tight_layout()
+
+        return fig
+
+class valrate(Describe):
+    """
+    DataFrameからヒストグラムを出力する
+    --------------------------------
+    df : データフレーム <DataFrame>
+        - pandasのdataframeオブジェクトを格納
+
+    cols : 出力するカラムの情報 <dict>
+        - cols["border"] : 望ましいサンプル数の割合 <array>
+        - cols["x"] : 割合の歩幅 <string>
+    --------------------------------
+    """
+    def __init__( self , df , cols ):
+        self.df = df
+        self.cols = cols
+
+    def dump( self ):
+        num_col = json.loads( self.cols["x"] )
+        y = self.df[json.loads( self.cols["y"] )[0]]
+
+        fig, axes = plt.subplots(nrows = len( num_col ), ncols = 2, figsize = (18, 20))
+
+        for c in num_col:
+            freqs = pd.crosstab( self.df[ c ] , y )
+            freqs.plot( ax = axes[ num_col.index( c ) , 0 ], kind = 'area' )
+
+            props = freqs.div( freqs.sum(1).astype(float) , axis = 0 )
+            props.plot( ax = axes[ num_col.index( c ), 1 ], kind = 'area' )
 
             fig.tight_layout()
 
