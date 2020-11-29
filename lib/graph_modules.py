@@ -69,15 +69,14 @@ class boxplot(Describe):
     --------------------------------
     """
     def __init__( self , df , cols ):
-        self.df = df.fillna(0)
         self.x_cols = json.loads( cols["x"] )
         self.y_cols = json.loads( cols["y"] )
+        self.df = df.dropna( subset=self.x_cols )
 
     def dump( self ):
         plt.cla()
         fig = plt.figure()
-        for i in range( len( self.y_cols ) ):
-            plt.bar( self.df[ self.x_cols[0] ] , self.df[ self.y_cols[i] ] )
+        sns.boxplot( x=self.x_cols[0] , y=self.y_cols[0] , data=self.df )
 
         return fig
 
