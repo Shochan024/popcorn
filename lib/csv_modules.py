@@ -10,7 +10,7 @@ from .tools.logger import *
 from abc import ABCMeta , abstractmethod
 __all__ = ["merge","where","categorical","withoutdup","renamecol","logcol"]
 __all__ += ["replacecol","fillna","crossterm","dup","duplicated","groupbycount","timediff"]
-__all__ += ["replaceval"]
+__all__ += ["replaceval","div"]
 
 
 class CSVModule(object,metaclass=ABCMeta):
@@ -313,6 +313,38 @@ class timediff(CSVModule):
         diff = np.abs( diff.dt.days )
         df["{}_{}_diff".format( self.vals["left_time"] , self.vals["right_time"] )] = diff
 
+
+        save_path = os.path.dirname( self.path.replace("originals","shaped") )
+
+        return { "csv_name" : self.filename , "save_path" : save_path , "dataframe" : df }
+
+class div(CSVModule):
+    """
+    DataFrameの特定の列に階級値を設ける
+    --------------------------------
+    path : 集計する元のcsvのpath <string>
+
+    vals : 出力するカラムの情報 <dict>
+    --------------------------------
+    """
+    def __init__( self , path , vals , df ):
+        self.path = path
+        self.vals = vals
+        self.df = df
+        self.filename = vals["filename"]
+        self.col = vals["column"]
+        self.unit = int( vals["unit"] )
+
+    def dump( self ):
+        df = self.df
+        x = np.array( df[self.col] )
+        max = np.max( x )
+        for i in range( max // self.unit + 1 ):
+            x = np.where( ( ( ( i*self.unit<x ) & ( x<=( i+1 )*self.unit ) ) ) , ( i+1 )*self.unit , x )
+
+        x = np.where( x==0 , self.unit , x )
+
+        df[self.col+"_divided"] = x
 
         save_path = os.path.dirname( self.path.replace("originals","shaped") )
 
