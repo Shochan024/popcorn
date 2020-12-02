@@ -113,13 +113,13 @@ class LearnController:
 
         return { "N" : N , "train" : train_acc , "test" : test_acc }
 
-    def model_save( self , model , filename , modelname , x_cols , y_cols ):
+    def model_save( self , id , model , filename , modelname , x_cols , y_cols ):
         filename = os.path.dirname( filename.replace( "datas" , "models" ) )
         filename = filename.replace("/shaped","")
         filename = filename.replace("/originals","")
         filename = filename.replace("/statistics","")
-        filename = filename + "/{}_model_{}_{}.sav".\
-        format( modelname , y_cols[0] , "_".join( x_cols ) )
+        filename = filename + "/{}_{}_{}_model.sav".\
+        format( id , modelname , y_cols[0] )
 
         if os.path.exists( os.path.dirname( filename ) ) is not True:
             message( "mkdir {}".format( os.path.dirname( filename ) ) )
@@ -129,7 +129,7 @@ class LearnController:
         message( "{} tree model dumped as {}".format( modelname , filename ) )
 
 
-    def _plot_calibration( self , df , query , model , x_cols , y_cols , std ):
+    def _plot_calibration( self , id , df , query , model , x_cols , y_cols , std ):
         if query != "":
             df = df.query( query )
 
@@ -172,8 +172,8 @@ class LearnController:
         val_names = "_".join( self.x_cols )
 
         filename = os.path.dirname( self.filename.replace( "datas" , "graphs" ) )
-        filename = filename + "/Calibration/{}/{}_calibration_curve{}_std{}.png".\
-        format( val_names , str( model.__class__.__name__ ) , self.y_cols[0] , len( std ) != 0 )
+        filename = filename + "/Calibration/{}_{}_calibration_curve{}_std{}.png".\
+        format( id , str( model.__class__.__name__ ) , self.y_cols[0] , len( std ) != 0 )
         if os.path.exists( os.path.dirname( filename ) ) is not True:
             message( "mkdir {}".format( os.path.dirname( filename ) ) )
             os.makedirs( os.path.dirname( filename ) )
@@ -190,7 +190,7 @@ class LearnController:
         return "Mean Score: {} (+/-{})".format( np.mean( score ) , sem( score ) )
 
 
-    def _plot_spec( self , df , query , model , x_cols , y_cols , std ):
+    def _plot_spec( self , id , df , query , model , x_cols , y_cols , std ):
         if query != "":
             df = df.query( query )
 
@@ -228,13 +228,12 @@ class LearnController:
         plt.xlabel('false positive rate')
         plt.ylabel('true positive rate')
 
-        val_names = "_".join( self.x_cols )
         filename = os.path.dirname( self.filename.replace( "datas" , "graphs" ) )
-        confusion_heatmap = filename + "/Confusion/{}/{}_Confusion{}_std_{}.png".\
-        format( val_names , str( model.__class__.__name__ ) , self.y_cols[0] , len( std ) != 0 )
+        confusion_heatmap = filename + "/Confusion/{}_{}_Confusion{}_std_{}.png".\
+        format( id , str( model.__class__.__name__ ) , self.y_cols[0] , len( std ) != 0 )
 
-        filename = filename + "/ROC/{}/{}_ROC_curve{}_std_{}.png".\
-        format( val_names , str( model.__class__.__name__ ) , self.y_cols[0] , len( std ) != 0 )
+        filename = filename + "/ROC/{}_{}_ROC_curve{}_std_{}.png".\
+        format( id , str( model.__class__.__name__ ) , self.y_cols[0] , len( std ) != 0 )
 
         message( "saved ROC_curve image as {}".format( filename ) )
         if os.path.exists( os.path.dirname( filename ) ) is not True:
@@ -277,6 +276,7 @@ class decisiontree(Learning,LearnController):
         self.save = bool( cols["save"] )
         self.max_depth = cols["max_depth"]
         self.std = json.loads( cols["std"] )
+        self.id = cols["id"]
 
         if self.max_depth == "None":
             self.max_depth = None
@@ -305,16 +305,16 @@ class decisiontree(Learning,LearnController):
         report_dict = self.acc_calc( model=model , df=self.df , query=self.query ,\
          x_cols=self.x_cols , y_cols=self.y_cols , std=self.std )
 
-        self._plot_calibration( df=self.df , query=self.query , model=model ,\
+        self._plot_calibration( id=self.id , df=self.df , query=self.query , model=model ,\
          x_cols=self.x_cols , y_cols=self.y_cols , std=self.std )
 
-        self._plot_spec( df=self.df , query=self.query , model=model , \
+        self._plot_spec( id=self.id , df=self.df , query=self.query , model=model , \
         x_cols=self.x_cols , y_cols=self.y_cols , std=self.std )
 
         return report_dict
 
     def dump( self , model ):
-        self.model_save( model=model , filename=self.filename ,\
+        self.model_save( id=self.id , model=model , filename=self.filename ,\
          modelname="decisiontree" , x_cols=self.x_cols , y_cols=self.y_cols )
 
 
@@ -379,6 +379,7 @@ class logistic(Learning,LearnController):
         self.query = cols["query"]
         self.save = bool( cols["save"] )
         self.std = json.loads( cols["std"] )
+        self.id = cols["id"]
 
         datetime_columns_arr = datetime_colmuns( df=self.df )
         for col in datetime_columns_arr:
@@ -395,10 +396,10 @@ class logistic(Learning,LearnController):
         report_dict = self.acc_calc( model=model , df=self.df , query=self.query ,\
          x_cols=self.x_cols , y_cols=self.y_cols , std=self.std )
 
-        self._plot_calibration( df=self.df , query=self.query , model=model ,\
+        self._plot_calibration( id=self.id , df=self.df , query=self.query , model=model ,\
          x_cols=self.x_cols , y_cols=self.y_cols , std=self.std )
 
-        self._plot_spec( df=self.df , query=self.query , model=model , \
+        self._plot_spec( id=self.id , df=self.df , query=self.query , model=model , \
         x_cols=self.x_cols , y_cols=self.y_cols , std=self.std )
 
         self.__coef_plot( model=model , x_cols=self.x_cols )
@@ -406,7 +407,7 @@ class logistic(Learning,LearnController):
         return report_dict
 
     def dump( self , model ):
-        self.model_save( model=model , filename=self.filename ,\
+        self.model_save( id=self.id , model=model , filename=self.filename ,\
          modelname="logistic" , x_cols=self.x_cols , y_cols=self.y_cols )
 
     def __coef_plot( self , model , x_cols ):
@@ -415,7 +416,7 @@ class logistic(Learning,LearnController):
         plt.title( "{} coef".format( str( model ) ) )
         plt.bar( x_cols , model.coef_[0] )
         filename = os.path.dirname( self.filename.replace( "datas" , "graphs" ) )
-        filename = filename + "/{}_{}_coef.png".format( str( model.__class__.__name__ ) , "_".join( self.x_cols ) )
+        filename = filename + "/{}_{}_coef.png".format( self.id , str( model.__class__.__name__ ) )
         system( "{} coef : {}".format( str( model.__class__.__name__ ) , str( model.coef_ ) ) )
         message( "saved Coef image as {}".format( filename ) )
         plt.savefig( filename )
@@ -432,6 +433,7 @@ class svm(Learning,LearnController):
         self.kernel = cols["kernel"]
         self.save = bool( cols["save"] )
         self.std = json.loads( cols["std"] )
+        self.id = cols["id"]
 
         datetime_columns_arr = datetime_colmuns( df=self.df )
         for col in datetime_columns_arr:
@@ -449,16 +451,16 @@ class svm(Learning,LearnController):
         report_dict = self.acc_calc( model=model , df=self.df , query=self.query ,\
          x_cols=self.x_cols , y_cols=self.y_cols , std=self.std )
 
-        self._plot_calibration( df=self.df , query=self.query , model=model ,\
+        self._plot_calibration( id=self.id , df=self.df , query=self.query , model=model ,\
          x_cols=self.x_cols , y_cols=self.y_cols , std=self.std )
 
-        self._plot_spec( df=self.df , query=self.query , model=model , \
+        self._plot_spec( id=self.id , df=self.df , query=self.query , model=model , \
         x_cols=self.x_cols , y_cols=self.y_cols , std=self.std )
 
         return report_dict
 
     def dump( self , model ):
-        self.model_save( model=model , filename=self.filename ,\
+        self.model_save( id=self.id , model=model , filename=self.filename ,\
          modelname="svm" , x_cols=self.x_cols , y_cols=self.y_cols )
 
 
@@ -474,6 +476,7 @@ class randomforest(Learning,LearnController):
         self.max_depth = cols["max_depth"]
         self.std = json.loads( cols["std"] )
         self.criterion = cols["criterion"]
+        self.id = cols["id"]
 
         if self.max_depth == "None":
             self.max_depth = None
@@ -494,16 +497,16 @@ class randomforest(Learning,LearnController):
         report_dict = self.acc_calc( model=model , df=self.df , query=self.query ,\
          x_cols=self.x_cols , y_cols=self.y_cols , std=self.std )
 
-        self._plot_calibration( df=self.df , query=self.query , model=model ,\
+        self._plot_calibration( id=self.id , df=self.df , query=self.query , model=model ,\
          x_cols=self.x_cols , y_cols=self.y_cols , std=self.std )
 
-        self._plot_spec( df=self.df , query=self.query , model=model , \
+        self._plot_spec( id=self.id , df=self.df , query=self.query , model=model , \
         x_cols=self.x_cols , y_cols=self.y_cols , std=self.std )
 
         return report_dict
 
     def dump( self , model ):
-        self.model_save( model=model , filename=self.filename ,\
+        self.model_save( id=self.id , model=model , filename=self.filename ,\
          modelname="randomforest" , x_cols=self.x_cols , y_cols=self.y_cols )
 
 
@@ -516,6 +519,7 @@ class kaplanmeierfitter(Learning,LearnController):
         self.y_cols = json.loads( cols["y"] )
         self.query = cols["query"]
         self.save = bool( cols["save"] )
+        self.id = cols["id"]
 
     def learn( self ):
         model = self.learning_set( model=KaplanMeierFitter() ,\
@@ -530,7 +534,7 @@ class kaplanmeierfitter(Learning,LearnController):
 
     def dump( self , model ):
         self.__lifetime_plot( model=model )
-        self.model_save( model=model , filename=self.filename ,\
+        self.model_save( id=self.id , model=model , filename=self.filename ,\
          modelname="kaplanmeierfitter" , x_cols=self.x_cols , y_cols=self.y_cols )
 
     def __lifetime_plot( self , model ):
@@ -554,6 +558,7 @@ class gausprocess(Learning,LearnController):
         self.query = cols["query"]
         self.save = bool( cols["save"] )
         self.kernel = cols["kernel"]
+        self.id = cols["id"]
 
     def learn( self ):
 
@@ -571,7 +576,7 @@ class gausprocess(Learning,LearnController):
         return report_dict
 
     def dump( self , model ):
-        self.model_save( model=model , filename=self.filename ,\
+        self.model_save( id=self.id , model=model , filename=self.filename ,\
          modelname="gausprocess" , x_cols=self.x_cols , y_cols=self.y_cols )
 
     def acc_calc( self , model , df , query , x_cols , y_cols , std ):
@@ -607,6 +612,7 @@ class coxphsurvival(Learning,LearnController):
         self.std = json.loads( cols["std"] )
         self.query = cols["query"]
         self.save = bool( cols["save"] )
+        self.id = cols["id"]
 
     def learn( self ):
 
@@ -622,7 +628,7 @@ class coxphsurvival(Learning,LearnController):
         return report_dict
 
     def dump( self , model ):
-        self.model_save( model=model , filename=self.filename ,\
+        self.model_save( id=self.id , model=model , filename=self.filename ,\
          modelname="coxphsurvival" , x_cols=self.x_cols , y_cols=self.y_cols )
 
     def acc_calc( self , model , df , query , x_cols , y_cols , std ):

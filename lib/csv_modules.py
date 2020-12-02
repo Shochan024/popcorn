@@ -279,12 +279,8 @@ class categorical(CSVModule):
     def dump( self ):
         df = self.df
         list_cols = json.loads( self.vals["columns"] )
-
-        if self.vals["mode"] == "onehot":
-            ce_ohe = ce.OneHotEncoder( cols=list_cols,handle_unknown='impute' )
-        else:
-            ce_ohe = ce.OrdinalEncoder( cols=list_cols,handle_unknown='impute' )
-        df = ce_ohe.fit_transform( df )
+        
+        df = pd.get_dummies( df , columns=list_cols )
 
         save_path = os.path.dirname( self.path.replace("originals","shaped") )
 
@@ -344,7 +340,7 @@ class div(CSVModule):
 
         x = np.where( x==0 , self.unit , x )
 
-        df[self.col+"_divided"] = x
+        df["{}_divided_{}".format( self.col , self.unit )] = x
 
         save_path = os.path.dirname( self.path.replace("originals","shaped") )
 
