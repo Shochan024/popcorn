@@ -338,12 +338,14 @@ class stackedbar(Describe):
         self.cols = cols
 
     def dump( self ):
-        fig, axes = plt.subplots(nrows = len(self.cols), ncols = 2, figsize = (18, 20))
         categories = json.loads( self.cols["x"] )
+        fig, axes = plt.subplots(nrows = len(categories), ncols = 2, figsize = (18, 20))
         y = self.df[json.loads( self.cols["y"] )[0]]
 
         for c in categories:
-            freqs = pd.crosstab( self.df[c] , y )
+            df = self.df
+            df = df.dropna(subset=[c])
+            freqs = pd.crosstab( df[c] , y )
             freqs.plot( ax = axes[ categories.index(c) , 0 ], kind = 'bar', stacked = True )
             axes[ categories.index(c) ][0].set_xticklabels( freqs.index , rotation=45 , size=12 )
             props = freqs.div( freqs.sum(1).astype(float) , axis = 0 )
